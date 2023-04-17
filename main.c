@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/22 20:47:06 by fcadet            #+#    #+#             */
-/*   Updated: 2023/03/28 10:04:28 by herrfalco        ###   ########.fr       */
+/*   Updated: 2023/04/17 21:49:00 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@
 #include "utils/hdrs/utils.h"
 #include "config/config.h"
 
-static void	init_proc(t_proc *proc, char **env) {
+static void	init_proc(proc_t *proc, char **env) {
 	pid_t	pid;
 	for (int i = 0; i < 3; ++i) {
 		if ((pid = fork()) == -1)
@@ -34,8 +34,8 @@ static void	init_proc(t_proc *proc, char **env) {
 int			main(int ac, char **av, char **env) {
 	prompt_t		prompt;
 	cmd_t			cmd;
-	t_proc			proc;
-	t_action		action;
+	proc_t			proc;
+	action_t		action;
 	conf_t			conf;
 
 	if (ac != 2)
