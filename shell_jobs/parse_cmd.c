@@ -1,8 +1,6 @@
-#include "../hdrs/builtin.h"
-#include "../hdrs/tmp.h"
-#include "../hdrs/action.h"
+#include "action.h"
 
-void	parse_cmd(t_action *action) {
+void	parse_cmd(action_t *action) {
 	if (!strcmp(action->cmd[0], "status"))
 		action_status();
 	else if (!strcmp(action->cmd[0], "start"))

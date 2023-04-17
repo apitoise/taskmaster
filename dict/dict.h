@@ -15,8 +15,6 @@
 
 #include "../vector/vector.h"
 
-typedef int			(*cmp_fn_t)(void *, void *);
-
 typedef struct		dict_s {
 	vec_t			*keys;
 	vec_t			*values;
