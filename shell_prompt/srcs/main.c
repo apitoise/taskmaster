@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "../hdrs/prompt.h"
+#include "../hdrs/builtin.h"
 
 int			main(void) {
 	prompt_t		prompt;
@@ -22,7 +23,8 @@ int			main(void) {
 			fprintf(stderr, "Error: Can't get command\n");
 			exit(4);
 		}
-		cmd_print(&cmd, 0, NULL);
+		parse_cmd(&cmd);
+//		cmd_print(&cmd, 0, NULL);
 		printf("\n");
 	}
 	return (0);

@@ -1,10 +1,12 @@
-NAME	=	shell_prompt
-SRCS	=	srcs/cmd.c \
-		srcs/hist.c \
-		srcs/in_buff.c \
-		srcs/main.c \
-		srcs/prompt.c \
-		srcs/term.c
+NAME	=	taskmaster
+SRCS	=	shell_prompt/srcs/cmd.c \
+		shell_prompt/srcs/hist.c \
+		shell_prompt/srcs/in_buff.c \
+		main.c \
+		shell_prompt/srcs/prompt.c \
+		shell_prompt/srcs/term.c \
+		shell_jobs/srcs/parse_cmd.c \
+		shell_jobs/srcs/do_cmd.c
 OBJS	=	$(SRCS:.c=.o)
 CC	=	gcc
 CFLAGS	=	-Wall -Wextra -Werror
