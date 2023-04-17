@@ -13,27 +13,12 @@
 #include "shell_prompt/hdrs/prompt.h"
 #include "shell_jobs/hdrs/builtin.h"
 #include "shell_jobs/hdrs/tmp.h"
-#include "shell_jobs/hdrs/cmd.h"
+#include "shell_jobs/hdrs/action.h"
+#include "utils/hdrs/utils.h"
+#include "config/config.h"
 
 static void	init_proc(t_proc *proc, char **env) {
 	pid_t	pid;
-
-	proc->proc_name[0] = "sleepdebain";
-	proc->proc_name[1] = "sleepknot";
-	proc->proc_name[2] = "sleep";
-	proc->proc_cmd[0] = "/usr/bin/sleep";
-	proc->proc_cmd[1] = "/usr/bin/sleep";
-	proc->proc_cmd[2] = "/usr/bin/sleep";
-	proc->proc_args[0][0] = "sleep";
-	proc->proc_args[1][0] = "sleep";
-	proc->proc_args[2][0] = "sleep";
-	proc->proc_args[0][1] = "100000";
-	proc->proc_args[1][1] = "100000";
-	proc->proc_args[2][1] = "100000";
-	proc->proc_args[0][2] = NULL;
-	proc->proc_args[1][2] = NULL;
-	proc->proc_args[2][2] = NULL;
-
 	for (int i = 0; i < 3; ++i) {
 		if ((pid = fork()) == -1)
 			fprintf(stderr, "fork fail");
@@ -49,11 +34,14 @@ static void	init_proc(t_proc *proc, char **env) {
 int			main(int ac, char **av, char **env) {
 	prompt_t		prompt;
 	cmd_t			cmd;
-	char			*res[2];
 	t_proc			proc;
+	t_action		action;
+	conf_t			conf;
 
-	(void)ac;
-	(void)av;
+	if (ac != 2)
+		exit_error("Wrong number of arguments: ./taskmaster [conf file]");
+	else if (config_init(&conf, av[1]))
+		exit_error("Can't load config file");
 	init_proc(&proc, env);
 	prompt_init(&prompt, "> ");
 	while (42) {
@@ -61,8 +49,8 @@ int			main(int ac, char **av, char **env) {
 			fprintf(stderr, "Error: Can't get command\n");
 			exit(4);
 		}
-		cmd_split(&cmd, res, 2);
-		parse_cmd(res);
+		action.sz = cmd_split(&cmd, action.cmd, 2);
+		parse_cmd(&action);
 		printf("\n");
 	}
 	return (0);

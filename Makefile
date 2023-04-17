@@ -6,7 +6,8 @@ SRCS	=	shell_prompt/srcs/cmd.c \
 		shell_prompt/srcs/prompt.c \
 		shell_prompt/srcs/term.c \
 		shell_jobs/srcs/parse_cmd.c \
-		shell_jobs/srcs/do_cmd.c
+		shell_jobs/srcs/action.c \
+		utils/srcs/exit_error.c
 OBJS	=	$(SRCS:.c=.o)
 CC	=	gcc
 CFLAGS	=	-Wall -Wextra -Werror

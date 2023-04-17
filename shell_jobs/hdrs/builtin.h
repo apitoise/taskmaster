@@ -2,12 +2,13 @@
 #define BUILTIN_H
 
 #include "includes.h"
+#include "action.h"
 
-void	parse_cmd(char **cmd);
-void	do_status(void);
-void	do_start(char **cmd);
-void	do_stop(char **cmd);
-void	do_restart(char **cmd);
-void	do_reload(char **cmd);
+void	parse_cmd(t_action *action);
+void	action_status(void);
+void	action_start(t_action *action);
+void	action_stop(t_action *action);
+void	action_restart(t_action *action);
+void	action_reload(t_action *action);
 
 #endif

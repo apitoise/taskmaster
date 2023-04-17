@@ -47,4 +47,6 @@ typedef struct		conf_s {
 
 typedef node_t		*(*node_getter_t)(conf_map_t *conf);
 
+int		config_init(conf_t *conf, char *path);
+
 #endif // CONFIG_H
