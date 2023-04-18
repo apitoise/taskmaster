@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/22 20:47:06 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/17 21:49:00 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/18 15:53:53 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <limits.h>
 
 #define	PROC_MAX	128
+#define MAP_ERR		((uint64_t)-1)
 
 typedef enum		restart_pol_e {
 	RP_ALWAYS,
@@ -28,12 +29,12 @@ typedef enum		restart_pol_e {
 typedef struct		proc_s {
 	char			*name;
 	char			*run;
-	uint8_t			at_start;
-	restart_pol_t	rest_pol;
+	uint64_t		at_start;
+	uint64_t		rest_pol;
 	vec_t			*exit_codes;
 	uint64_t		start_time;
 	uint64_t		retry_nb;
-	int				exit_signal;
+	uint64_t		exit_sig;
 	uint64_t		kill_delay;
 	char			*f_out;
 	char			*f_err;
@@ -47,22 +48,31 @@ typedef struct		proc_lst_s {
 	uint64_t		sz;
 }					proc_lst_t;
 
-int			proc_filler(dict_t *dic, char *key, void *def, data_type_t type) {
+int			dic_unwrap(dict_t *dic, char *key, void **dst, void *def, data_type_t type) {
 	node_t	*node;
 
-	switch (type) {
-		case (DT_STR): 
-		break;
-		case (DT_VEC):
-		break;
-		case (DT_DIC):
-		break;
-		case (DT_UNB):
-		break;
-	}
+	if (dict_get(dic, key, (void **)&node) < 0)
+		node = NULL;
+	if (node && node->type != type)
+		return (-1);
+	*dst = node ? node->data : def;
+	return (0);
+}
+
+uint64_t	proc_map_str(uint64_t *out, char **in, char *str, uint64_t sz) {
+	uint64_t		i;
+
+	for (i = 0; i < sz; ++i)
+		if (!strcmp(in[i], str))
+			return (out ? out[i] : i);
+	return (MAP_ERR);
 }
 
 int			procs_init(proc_lst_t *proc_lst, conf_t *conf) {
+	char		*bools[] = { "false", "true" };
+	char		*auto_r[] = { "always", "never", "unexpected" };
+	char		*sigs_in[] = { "INT", "QUIT", "TERM" };
+	uint64_t	sigs_out[] = { SIGINT, SIGQUIT, SIGTERM };
 	dict_t		*dic;
 	uint64_t	i;
 	char		*str;
@@ -72,51 +82,42 @@ int			procs_init(proc_lst_t *proc_lst, conf_t *conf) {
 	dic = conf->root->data;
 	if (dic->keys->sz > PROC_MAX)
 		return (-1);
-	for (i = 0; i < dic->keys->sz; ++i) {
+	proc_lst->sz = 0;
+	for (i = 0; i < dic->keys->sz; ++i, ++proc_lst->sz) {
 		proc_lst->proc[i].name = (char *)dic->keys[i].data;
-		if (dict_get(dic, "cmd", (void *)&proc_lst->proc[i].run) < 0)
-			proc_lst->proc[i].run = proc_lst->proc[i].name;
-		if (dict_get(dic, "autostart", (void *)&str) < 0 || !strcmp(str, "true"))
-			proc_lst->proc[i].at_start = 1;
-		else if (!strcmp(str, "false"))
-			proc_lst->proc[i].at_start = 0;
-		else
+		if (dic_unwrap(dic, "cmd", (void **)&proc_lst->proc[i].run,
+			proc_lst->proc[i].name, DT_STR) < 0
+			|| dic_unwrap(dic, "autostart",
+				(void **)&str, "true", DT_STR) < 0
+			|| (proc_lst->proc[i].at_start
+				= proc_map_str(NULL, bools, str, 2)) == MAP_ERR
+			|| dic_unwrap(dic, "autorestart",
+				(void **)&str, "unexpected", DT_STR) < 0
+			|| (proc_lst->proc[i].rest_pol
+				= proc_map_str(NULL, auto_r, str, 3)) == MAP_ERR
+			|| dic_unwrap(dic, "exitcodes",
+				(void **)&proc_lst->proc[i].exit_codes, NULL, DT_VEC) < 0
+			|| dic_unwrap(dic, "starttime",
+				(void **)&proc_lst->proc[i].start_time, (void *)5, DT_UNB) < 0
+			|| dic_unwrap(dic, "startretries",
+				(void **)&proc_lst->proc[i].retry_nb, NULL, DT_UNB) < 0
+			|| dic_unwrap(dic, "stopsignal",
+				(void **)&str, "INT", DT_STR) < 0
+			|| (proc_lst->proc[i].exit_sig
+				= proc_map_str(sigs_out, sigs_in, str, 3)) == MAP_ERR
+			|| dic_unwrap(dic, "stoptime",
+				(void **)&proc_lst->proc[i].kill_delay, (void *)10, DT_UNB) < 0
+			|| dic_unwrap(dic, "stdout",
+				(void **)&proc_lst->proc[i].f_out, NULL, DT_STR) < 0
+			|| dic_unwrap(dic, "stderr",
+				(void **)&proc_lst->proc[i].f_err, NULL, DT_STR) < 0
+			|| dic_unwrap(dic, "env",
+				(void **)&proc_lst->proc[i].env, NULL, DT_DIC) < 0
+			|| dic_unwrap(dic, "workingdir",
+				(void **)&proc_lst->proc[i].cwd, NULL, DT_STR) < 0
+			|| dic_unwrap(dic, "umask",
+				(void **)&proc_lst->proc[i].umask, NULL, DT_UNB))
 			return (-1);
-		if (dict_get(dic, "autorestart", (void *)&str) < 0 || !strcmp(str, "unexpected"))
-			proc_lst->proc[i].rest_pol = RP_UNEXP;
-		else if (!strcmp(str, "always"))
-			proc_lst->proc[i].rest_pol = RP_ALWAYS;
-		else if (!strcmp(str, "never"))
-			proc_lst->proc[i].rest_pol = RP_NEVER;
-		else
-			return (-1);
-		if (dict_get(dic, "exitcodes", (void *)&proc_lst->proc[i].exit_codes) < 0)
-			proc_lst->proc[i].exit_codes = NULL;
-		if (dict_get(dic, "starttime", (void *)&proc_lst->proc[i].start_time) < 0)
-			proc_lst->proc[i].start_time = 5;
-		if (dict_get(dic, "startretries", (void *)&proc_lst->proc[i].retry_nb) < 0)
-			proc_lst->proc[i].retry_nb = 0;
-		if (dict_get(dic, "stopsignal", (void *)&str) < 0 || !strcmp(str, "INT"))
-			proc_lst->proc[i].exit_signal = SIGINT;
-		else if (!strcmp(str, "TERM"))
-			proc_lst->proc[i].exit_signal = SIGTERM;
-		else if (!strcmp(str, "QUIT"))
-			proc_lst->proc[i].exit_signal = SIGQUIT;
-		else
-			return (-1);
-		if (dict_get(dic, "stoptime", (void *)&proc_lst->proc[i].kill_delay) < 0)
-			proc_lst->proc[i].kill_delay = 10;
-		if (dict_get(dic, "stdout", (void *)&proc_lst->proc[i].f_out) < 0)
-			strcpy(proc_lst->proc[i].f_out, "stdout");
-		if (dict_get(dic, "stderr", (void *)&proc_lst->proc[i].f_err) < 0)	
-			strcpy(proc_lst->proc[i].f_err, "stderr");
-		if (dict_get(dic, "env", (void *)&proc_lst->proc[i].env) < 0)
-			proc_lst->proc[i].env = NULL;
-		if (dict_get(dic, "workingdir", (void *)&proc_lst->proc[i].cwd) < 0)
-			if (getcwd(proc_lst->proc[i].cwd, sizeof(proc_lst->proc[i].cwd)))
-				return (-1);
-		if (dict_get(dic, "umask", (void *)&proc_lst->proc[i].umask) < 0)
-			proc_lst->proc[i].umask = 0;
 	}
 	return (0);
 }
@@ -147,7 +148,8 @@ int			main(int ac, char **av, char **env) {
 		exit_error("Wrong number of arguments: ./taskmaster [conf file]");
 	else if (config_init(&conf, av[1]))
 		exit_error("Can't load config file");
-	procs_init(&proc_lst, &conf); // err
+	if (procs_init(&proc_lst, &conf))
+		printf("bite\n");
 	prompt_init(&prompt, "> ");
 	while (42) {
 		if (prompt_query(&prompt, &cmd)) {
