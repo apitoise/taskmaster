@@ -59,6 +59,51 @@ int			dic_unwrap(dict_t *dic, char *key, void **dst, void *def, data_type_t type
 	return (0);
 }
 
+int			vec_unwrap(vec_t *vec, uint64_t idx, void **dst, void *def, data_type_t type) {
+	node_t	*node;
+
+	printf("OK\n");
+	vec_print(vec);
+	printf("OK\n");
+	if (vec_get(vec, idx, (void **)&node) < 0)
+		node = NULL;
+	if (node && node->type != type)
+		return (-1);
+	*dst = node ? node->data : def;
+	return (0);
+}
+
+void		proc_print(proc_t *proc) {
+	char		*bools[] = { "false", "true" };
+	char		*auto_r[] = { "always", "never", "unexpected" };
+	uint64_t	exit_code;
+	uint64_t	i;
+	char		*str;
+
+	printf("name: %s\n", proc->name);
+	printf("run: %s\n", proc->run);
+	printf("at_start: %s\n", bools[proc->at_start]);
+	printf("rest_pol: %s\n", auto_r[proc->rest_pol]);
+	printf("exit_code:\n");
+	for (i = 0; i < proc->exit_codes->sz; ++i) {
+		vec_unwrap(proc->exit_codes, i, (void **)&exit_code, NULL, DT_UNB);
+		printf("    %lu\n", exit_code);
+	}
+	printf("start_time: %lu\n", proc->start_time);
+	printf("retry_nb: %lu\n", proc->retry_nb);
+	printf("exit_sig: %lu\n", proc->exit_sig);
+	printf("kill_delay: %lu\n", proc->kill_delay);
+	printf("f_out: %s\n", proc->f_out);
+	printf("f_err: %s\n", proc->f_err);
+	printf("env:\n");
+		for (i = 0; i < proc->env->keys->sz; ++i) {
+		dic_unwrap(proc->env, proc->env->keys->data[i], (void **)&str, NULL, DT_STR);
+		printf("    %s\n", str);
+	}
+	printf("cwd: %s\n", proc->cwd);
+	printf("umask: %lu\n", proc->umask);
+}
+
 uint64_t	proc_map_str(uint64_t *out, char **in, char *str, uint64_t sz) {
 	uint64_t		i;
 
@@ -84,7 +129,7 @@ int			procs_init(proc_lst_t *proc_lst, conf_t *conf) {
 		return (-1);
 	proc_lst->sz = 0;
 	for (i = 0; i < dic->keys->sz; ++i, ++proc_lst->sz) {
-		proc_lst->proc[i].name = (char *)dic->keys[i].data;
+		proc_lst->proc[i].name = (char *)dic->keys->data[i];
 		if (dic_unwrap(dic, "cmd", (void **)&proc_lst->proc[i].run,
 			proc_lst->proc[i].name, DT_STR) < 0
 			|| dic_unwrap(dic, "autostart",
@@ -150,6 +195,8 @@ int			main(int ac, char **av, char **env) {
 		exit_error("Can't load config file");
 	if (procs_init(&proc_lst, &conf))
 		printf("bite\n");
+	config_print(&conf);
+	proc_print(&proc_lst.proc[0]);
 	prompt_init(&prompt, "> ");
 	while (42) {
 		if (prompt_query(&prompt, &cmd)) {
