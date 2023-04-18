@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/22 20:47:06 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/18 15:53:53 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/18 19:43:15 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,80 +28,113 @@ typedef enum		restart_pol_e {
 
 typedef struct		proc_s {
 	char			*name;
-	char			*run;
-	uint64_t		at_start;
-	uint64_t		rest_pol;
-	vec_t			*exit_codes;
-	uint64_t		start_time;
-	uint64_t		retry_nb;
-	uint64_t		exit_sig;
-	uint64_t		kill_delay;
-	char			*f_out;
-	char			*f_err;
+	char			*cmd;
+	uint64_t		autostart;
+	uint64_t		autorestart;
+	vec_t			*exitcodes;
+	uint64_t		starttime;
+	uint64_t		startretries;
+	uint64_t		stopsignal;
+	uint64_t		stoptime;
+	char			*std_out;
+	char			*std_err;
 	dict_t			*env;
-	char			cwd[PATH_MAX];
+	char			*workingdir;
 	uint64_t		umask;
 }					proc_t;
 
 typedef struct		proc_lst_s {
-	proc_t			proc[PROC_MAX];
+	proc_t			data[PROC_MAX];
 	uint64_t		sz;
 }					proc_lst_t;
 
-int			dic_unwrap(dict_t *dic, char *key, void **dst, void *def, data_type_t type) {
+int			node_unwrap(node_t *node, void **dst, data_type_t type) {
+	*dst = node->data;
+	return (node->type != type ? -1 : 0);
+}
+
+int			dic_get_unwrap(dict_t *dic, char *key, void **dst, void *def, data_type_t type) {
 	node_t	*node;
 
-	if (dict_get(dic, key, (void **)&node) < 0)
-		node = NULL;
-	if (node && node->type != type)
-		return (-1);
-	*dst = node ? node->data : def;
+	if (!dict_get(dic, key, (void **)&node))
+		return (node_unwrap(node, dst, type));
+	*dst = def;
 	return (0);
 }
 
-int			vec_unwrap(vec_t *vec, uint64_t idx, void **dst, void *def, data_type_t type) {
-	node_t	*node;
+dict_t		*dic_unwrap(dict_t *dic, data_type_t type) {
+	uint64_t	i;
+	dict_t		*new;
+	void		*val;
 
-	printf("OK\n");
-	vec_print(vec);
-	printf("OK\n");
-	if (vec_get(vec, idx, (void **)&node) < 0)
-		node = NULL;
-	if (node && node->type != type)
-		return (-1);
-	*dst = node ? node->data : def;
-	return (0);
+	if (!(new = dict_new(1)))
+		return (NULL);
+	if (!dic)
+		return (new);
+	for (i = 0; i < dic->keys->sz; ++i) {
+		if (node_unwrap(dic->values->data[i], &val, type)) {
+			dict_free(new);
+			return (NULL);
+		}
+		dict_set(new, dic->keys->data[i], val);	
+	}
+	return (new);
+}
+
+vec_t		*vec_unwrap(vec_t *vec, data_type_t type) {
+	uint64_t	i;
+	vec_t		*new;
+	void		*val;
+
+	if (!(new = vec_new(1)))
+		return (NULL);
+	if (!vec)
+		return (new);
+	for (i = 0; i < vec->sz; ++i) {
+		if (node_unwrap(vec->data[i], &val, type)) {
+			vec_free(new);
+			return (NULL);
+		}
+		vec_push_back(new, val);	
+	}
+	return (new);
 }
 
 void		proc_print(proc_t *proc) {
 	char		*bools[] = { "false", "true" };
 	char		*auto_r[] = { "always", "never", "unexpected" };
-	uint64_t	exit_code;
+	char		*sigs_s[] = { "INT", "QUIT", "TERM" };
+	uint64_t	sigs_v[] = { SIGINT, SIGQUIT, SIGTERM };
 	uint64_t	i;
-	char		*str;
 
-	printf("name: %s\n", proc->name);
-	printf("run: %s\n", proc->run);
-	printf("at_start: %s\n", bools[proc->at_start]);
-	printf("rest_pol: %s\n", auto_r[proc->rest_pol]);
-	printf("exit_code:\n");
-	for (i = 0; i < proc->exit_codes->sz; ++i) {
-		vec_unwrap(proc->exit_codes, i, (void **)&exit_code, NULL, DT_UNB);
-		printf("    %lu\n", exit_code);
+	printf("name: \"%s\"\n", proc->name);
+	printf("cmd: \"%s\"\n", proc->cmd);
+	printf("autostart: \"%s\"\n", bools[proc->autostart]);
+	printf("autorestart: \"%s\"\n", auto_r[proc->autorestart]);
+	printf("exit_code: [ ");
+	for (i = 0; i < proc->exitcodes->sz; ++i)
+		printf("%lu%s", (uint64_t)proc->exitcodes->data[i],
+			i + 1 < proc->exitcodes->sz ? ", " : " ");
+	printf("]\n");
+	printf("starttime: %lu\n", proc->starttime);
+	printf("startretries: %lu\n", proc->startretries);
+	printf("stopsignal: ");
+	for (i = 0; i < 3; ++i) {
+		if ((uint64_t)proc->stopsignal == sigs_v[i]) {
+			printf("%s\n", sigs_s[i]);
+			break;
+		}
 	}
-	printf("start_time: %lu\n", proc->start_time);
-	printf("retry_nb: %lu\n", proc->retry_nb);
-	printf("exit_sig: %lu\n", proc->exit_sig);
-	printf("kill_delay: %lu\n", proc->kill_delay);
-	printf("f_out: %s\n", proc->f_out);
-	printf("f_err: %s\n", proc->f_err);
-	printf("env:\n");
-		for (i = 0; i < proc->env->keys->sz; ++i) {
-		dic_unwrap(proc->env, proc->env->keys->data[i], (void **)&str, NULL, DT_STR);
-		printf("    %s\n", str);
-	}
-	printf("cwd: %s\n", proc->cwd);
-	printf("umask: %lu\n", proc->umask);
+	printf("stoptime: %lu\n", proc->stoptime);
+	printf("stdout: \"%s\"\n", proc->std_out);
+	printf("stderr: \"%s\"\n", proc->std_err);
+	printf("env: {%s", proc->env->keys->sz ? "\n" : " ");
+	for (i = 0; i < proc->env->keys->sz; ++i)
+		printf("    %s=%s,\n", (char *)proc->env->keys->data[i],
+			(char *)proc->env->values->data[i]);
+	printf("}\n");
+	printf("workingdir: \"%s\"\n", proc->workingdir);
+	printf("umask: 0%lo\n", proc->umask);
 }
 
 uint64_t	proc_map_str(uint64_t *out, char **in, char *str, uint64_t sz) {
@@ -113,61 +146,73 @@ uint64_t	proc_map_str(uint64_t *out, char **in, char *str, uint64_t sz) {
 	return (MAP_ERR);
 }
 
-int			procs_init(proc_lst_t *proc_lst, conf_t *conf) {
+int			proc_init(proc_t *proc, char *name, dict_t *opts) {
 	char		*bools[] = { "false", "true" };
 	char		*auto_r[] = { "always", "never", "unexpected" };
 	char		*sigs_in[] = { "INT", "QUIT", "TERM" };
 	uint64_t	sigs_out[] = { SIGINT, SIGQUIT, SIGTERM };
+	char 		*str;
+	vec_t		*vec;
 	dict_t		*dic;
-	uint64_t	i;
-	char		*str;
 
-	if (conf->root->type != DT_DIC)
+	proc->name = name;
+	if (dic_get_unwrap(opts, "cmd", (void **)&proc->cmd, proc->name, DT_STR) < 0
+		|| dic_get_unwrap(opts, "autostart", (void **)&str, "false", DT_STR) < 0
+		|| (proc->autostart = proc_map_str(NULL, bools, str, 2)) == MAP_ERR
+		|| dic_get_unwrap(opts, "autorestart", (void **)&str, "unexpected", DT_STR) < 0
+		|| (proc->autorestart = proc_map_str(NULL, auto_r, str, 3)) == MAP_ERR
+		|| dic_get_unwrap(opts, "exitcodes", (void **)&vec, NULL, DT_VEC) < 0
+		|| dic_get_unwrap(opts, "starttime", (void **)&proc->starttime, (void *)5, DT_UNB) < 0
+		|| dic_get_unwrap(opts, "startretries", (void **)&proc->startretries, NULL, DT_UNB) < 0
+		|| dic_get_unwrap(opts, "stopsignal", (void **)&str, "INT", DT_STR) < 0
+		|| (proc->stopsignal = proc_map_str(sigs_out, sigs_in, str, 3)) == MAP_ERR
+		|| dic_get_unwrap(opts, "stoptime", (void **)&proc->stoptime, (void *)10, DT_UNB) < 0
+		|| dic_get_unwrap(opts, "stdout", (void **)&proc->std_out, "", DT_STR) < 0
+		|| dic_get_unwrap(opts, "stderr", (void **)&proc->std_err, "", DT_STR) < 0
+		|| dic_get_unwrap(opts, "env", (void **)&dic, NULL, DT_DIC) < 0
+		|| dic_get_unwrap(opts, "workingdir", (void **)&proc->workingdir, "", DT_STR) < 0
+		|| dic_get_unwrap(opts, "umask", (void **)&proc->umask, NULL, DT_UNB))
 		return (-1);
-	dic = conf->root->data;
-	if (dic->keys->sz > PROC_MAX)
+	if (!(proc->exitcodes = vec_unwrap(vec, DT_UNB)))
+		return (-1);
+	if (!proc->exitcodes->sz)
+		vec_push_back(proc->exitcodes, 0);
+	if (!(proc->env = dic_unwrap(dic, DT_STR))) {
+		vec_free(proc->exitcodes);
+		return (-1);
+	}
+	return (0);
+}
+
+void		proc_free(proc_t *proc) {
+	vec_free(proc->exitcodes);
+	dict_free(proc->env);
+}
+
+int			proc_lst_init(proc_lst_t *proc_lst, conf_t *conf) {
+	dict_t		*root, *opts;
+	uint64_t	i;
+
+	if (node_unwrap(conf->root, (void **)&root, DT_DIC)
+		|| root->keys->sz > PROC_MAX)
 		return (-1);
 	proc_lst->sz = 0;
-	for (i = 0; i < dic->keys->sz; ++i, ++proc_lst->sz) {
-		proc_lst->proc[i].name = (char *)dic->keys->data[i];
-		if (dic_unwrap(dic, "cmd", (void **)&proc_lst->proc[i].run,
-			proc_lst->proc[i].name, DT_STR) < 0
-			|| dic_unwrap(dic, "autostart",
-				(void **)&str, "true", DT_STR) < 0
-			|| (proc_lst->proc[i].at_start
-				= proc_map_str(NULL, bools, str, 2)) == MAP_ERR
-			|| dic_unwrap(dic, "autorestart",
-				(void **)&str, "unexpected", DT_STR) < 0
-			|| (proc_lst->proc[i].rest_pol
-				= proc_map_str(NULL, auto_r, str, 3)) == MAP_ERR
-			|| dic_unwrap(dic, "exitcodes",
-				(void **)&proc_lst->proc[i].exit_codes, NULL, DT_VEC) < 0
-			|| dic_unwrap(dic, "starttime",
-				(void **)&proc_lst->proc[i].start_time, (void *)5, DT_UNB) < 0
-			|| dic_unwrap(dic, "startretries",
-				(void **)&proc_lst->proc[i].retry_nb, NULL, DT_UNB) < 0
-			|| dic_unwrap(dic, "stopsignal",
-				(void **)&str, "INT", DT_STR) < 0
-			|| (proc_lst->proc[i].exit_sig
-				= proc_map_str(sigs_out, sigs_in, str, 3)) == MAP_ERR
-			|| dic_unwrap(dic, "stoptime",
-				(void **)&proc_lst->proc[i].kill_delay, (void *)10, DT_UNB) < 0
-			|| dic_unwrap(dic, "stdout",
-				(void **)&proc_lst->proc[i].f_out, NULL, DT_STR) < 0
-			|| dic_unwrap(dic, "stderr",
-				(void **)&proc_lst->proc[i].f_err, NULL, DT_STR) < 0
-			|| dic_unwrap(dic, "env",
-				(void **)&proc_lst->proc[i].env, NULL, DT_DIC) < 0
-			|| dic_unwrap(dic, "workingdir",
-				(void **)&proc_lst->proc[i].cwd, NULL, DT_STR) < 0
-			|| dic_unwrap(dic, "umask",
-				(void **)&proc_lst->proc[i].umask, NULL, DT_UNB))
+	for (i = 0; i < root->keys->sz; ++i, ++proc_lst->sz) {
+		if (node_unwrap(root->values->data[i], (void **)&opts, DT_DIC)
+			|| proc_init(&proc_lst->data[i], (char *)root->keys->data[i], opts))
 			return (-1);
 	}
 	return (0);
 }
 
-//static void	init_proc(proc_t *proc, char **env) {
+void		proc_lst_free(proc_lst_t *proc_lst) {
+	uint64_t		i;
+
+	for (i = 0; i < proc_lst->sz; ++i)
+		proc_free(&proc_lst->data[i]);
+}
+
+//static void	cmd_proc(proc_t *proc, char **env) {
 //	pid_t	pid;
 //	for (int i = 0; i < 3; ++i) {
 //		if ((pid = fork()) == -1)
@@ -181,6 +226,10 @@ int			procs_init(proc_lst_t *proc_lst, conf_t *conf) {
 //	}
 //}
 
+//TODO:
+//need to parse octal numbers
+//autocompletion in prompt
+
 int			main(int ac, char **av, char **env) {
 	prompt_t		prompt;
 	cmd_t			cmd;
@@ -193,19 +242,27 @@ int			main(int ac, char **av, char **env) {
 		exit_error("Wrong number of arguments: ./taskmaster [conf file]");
 	else if (config_init(&conf, av[1]))
 		exit_error("Can't load config file");
-	if (procs_init(&proc_lst, &conf))
+	if (proc_lst_init(&proc_lst, &conf))
 		printf("bite\n");
-	config_print(&conf);
-	proc_print(&proc_lst.proc[0]);
+
+	proc_print(&proc_lst.data[0]);
+	printf("\n");
+	proc_print(&proc_lst.data[1]);
+	printf("\n");
+	proc_print(&proc_lst.data[2]);
+	printf("\n");
+
 	prompt_init(&prompt, "> ");
 	while (42) {
 		if (prompt_query(&prompt, &cmd)) {
 			fprintf(stderr, "Error: Can't get command\n");
+			proc_lst_free(&proc_lst);
 			exit(4);
 		}
 		action.sz = cmd_split(&cmd, action.cmd, 2);
 		parse_cmd(&action);
 		printf("\n");
 	}
+	proc_lst_free(&proc_lst);
 	return (0);
 }
