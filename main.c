@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/22 20:47:06 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/18 23:24:45 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/19 16:01:17 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -234,7 +234,6 @@ void		proc_lst_free(proc_lst_t *proc_lst) {
 //}
 
 //TODO:
-//need to parse octal numbers
 //autocompletion in prompt
 
 int			main(int ac, char **av, char **env) {

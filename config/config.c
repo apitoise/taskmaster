@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/13 22:16:40 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/17 18:42:13 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/19 15:58:52 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,13 +73,17 @@ static node_t	*get_str_node(conf_map_t *map) {
 }
 
 static node_t	*get_unb_node(conf_map_t *map) {
-	uint64_t		nb = 0;
+	uint64_t		nb = 0, base = 10;
 	node_t			*node;
 
+	if (map->data[map->idx] == '0') {
+		++map->idx;
+		base = 8;
+	}
 	for (; map->idx < map->sz; ++map->idx) {
 		if (!isdigit(map->data[map->idx]))
 			break;
-		nb *= 10;
+		nb *= base;
 		nb += map->data[map->idx] - '0';
 	}
 	if (!(node = malloc(sizeof(node_t))))
