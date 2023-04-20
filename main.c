@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/22 20:47:06 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/19 16:01:17 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/20 17:52:42 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,7 @@ typedef struct		proc_s {
 	uint64_t		stoptime;
 	char			*std_out;
 	char			*std_err;
-	dict_t			*env;
+	vec_t			*env;
 	char			*workingdir;
 	uint64_t		umask;
 	pid_t			pid;
@@ -78,6 +78,7 @@ int			dic_get_unwrap(dict_t *dic, char *key, void **dst, void *def, data_type_t 
 	return (0);
 }
 
+/*
 dict_t		*dic_unwrap(dict_t *dic, data_type_t type) {
 	uint64_t	i;
 	dict_t		*new;
@@ -96,6 +97,7 @@ dict_t		*dic_unwrap(dict_t *dic, data_type_t type) {
 	}
 	return (new);
 }
+*/
 
 vec_t		*vec_unwrap(vec_t *vec, data_type_t type) {
 	uint64_t	i;
@@ -140,10 +142,9 @@ void		proc_print(proc_t *proc) {
 	printf("stoptime: %lu\n", proc->stoptime);
 	printf("stdout: \"%s\"\n", proc->std_out);
 	printf("stderr: \"%s\"\n", proc->std_err);
-	printf("env: {%s", proc->env->keys->sz ? "\n" : " ");
-	for (i = 0; i < proc->env->keys->sz; ++i)
-		printf("  %s=%s,\n", (char *)proc->env->keys->data[i],
-			(char *)proc->env->values->data[i]);
+	printf("env: {%s", proc->env->sz ? "\n" : " ");
+	for (i = 0; i < proc->env->sz; ++i)
+		printf("  \"%s\"\n", (char *)proc->env->data[i]);
 	printf("}\n");
 	printf("workingdir: \"%s\"\n", proc->workingdir);
 	printf("umask: %s%lo\n", proc->umask ? "0" : "", proc->umask);
@@ -160,8 +161,7 @@ uint64_t	proc_map_str(uint64_t *out, char **in, char *str, uint64_t sz) {
 
 int			proc_init(proc_t *proc, char *name, dict_t *opts) {
 	char 		*str;
-	vec_t		*vec;
-	dict_t		*dic;
+	vec_t		*ex_cds, *env;
 
 	proc->name = name;
 	if (dic_get_unwrap(opts, "cmd", (void **)&proc->cmd, proc->name, DT_STR) < 0
@@ -169,7 +169,7 @@ int			proc_init(proc_t *proc, char *name, dict_t *opts) {
 		|| (proc->autostart = proc_map_str(NULL, g_map.bools, str, 2)) == U_ERROR
 		|| dic_get_unwrap(opts, "autorestart", (void **)&str, "unexpected", DT_STR) < 0
 		|| (proc->autorestart = proc_map_str(NULL, g_map.auto_r, str, 3)) == U_ERROR
-		|| dic_get_unwrap(opts, "exitcodes", (void **)&vec, NULL, DT_VEC) < 0
+		|| dic_get_unwrap(opts, "exitcodes", (void **)&ex_cds, NULL, DT_VEC) < 0
 		|| dic_get_unwrap(opts, "starttime", (void **)&proc->starttime, (void *)5, DT_UNB) < 0
 		|| dic_get_unwrap(opts, "startretries", (void **)&proc->startretries, NULL, DT_UNB) < 0
 		|| dic_get_unwrap(opts, "stopsignal", (void **)&str, "INT", DT_STR) < 0
@@ -177,23 +177,24 @@ int			proc_init(proc_t *proc, char *name, dict_t *opts) {
 		|| dic_get_unwrap(opts, "stoptime", (void **)&proc->stoptime, (void *)10, DT_UNB) < 0
 		|| dic_get_unwrap(opts, "stdout", (void **)&proc->std_out, "", DT_STR) < 0
 		|| dic_get_unwrap(opts, "stderr", (void **)&proc->std_err, "", DT_STR) < 0
-		|| dic_get_unwrap(opts, "env", (void **)&dic, NULL, DT_DIC) < 0
+		|| dic_get_unwrap(opts, "env", (void **)&env, NULL, DT_VEC) < 0
 		|| dic_get_unwrap(opts, "workingdir", (void **)&proc->workingdir, "", DT_STR) < 0
 		|| dic_get_unwrap(opts, "umask", (void **)&proc->umask, NULL, DT_UNB)
-		|| !(proc->exitcodes = vec_unwrap(vec, DT_UNB)))
+		|| !(proc->exitcodes = vec_unwrap(ex_cds, DT_UNB)))
 		return (-1);
 	if (!proc->exitcodes->sz)
 		vec_push_back(proc->exitcodes, 0);
-	if (!(proc->env = dic_unwrap(dic, DT_STR))) {
+	if (!(proc->env = vec_unwrap(env, DT_STR))) {
 		vec_free(proc->exitcodes);
 		return (-1);
 	}
+	vec_push_back(proc->env, NULL);
 	return (0);
 }
 
 void		proc_free(proc_t *proc) {
 	vec_free(proc->exitcodes);
-	dict_free(proc->env);
+	vec_free(proc->env);
 }
 
 int			proc_lst_init(proc_lst_t *proc_lst, conf_t *conf) {
@@ -239,13 +240,16 @@ int			str_split(char *str, char **res, uint64_t n_res) {
 	return (0);
 }
 
-int			dic_to_env(dict_t *dic, char **env) {
+/*
+int			vec_to_env(vec_t *vec, char **env) {
 	uint64_t	i;
 
 	for (i = 0; i < dic->keys->sz; ++i)
 		env[i] = dic->keys;
 }
+*/
 
+/*
 int			proc_run(proc_t *proc) {
 	pid_t	pid;
 	char	*args[STD_MAX];
@@ -277,11 +281,10 @@ int			proc_lst_run(proc_lst_t *proc_lst) {
 	}
 	return (ret);
 }
+*/
 
 //TODO:
 //autocompletion in prompt
-
-
 
 int			main(int ac, char **av) {
 	prompt_t		prompt;
@@ -290,7 +293,6 @@ int			main(int ac, char **av) {
 	action_t		action;
 	conf_t			conf;
 
-	(void)env;
 	if (ac != 2)
 		exit_error("Wrong number of arguments: ./taskmaster [conf file]");
 	else if (config_init(&conf, av[1])
