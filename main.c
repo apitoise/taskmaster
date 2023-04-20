@@ -16,6 +16,7 @@
 #include "config/config.h"
 #include <signal.h>
 #include <limits.h>
+#include <time.h>
 
 #define	STD_MAX	128
 
@@ -57,6 +58,7 @@ typedef struct		proc_s {
 	char			*workingdir;
 	uint64_t		umask;
 	pid_t			pid;
+	time_t			timestamp;
 }					proc_t;
 
 typedef struct		proc_lst_s {
@@ -221,9 +223,9 @@ void		proc_lst_free(proc_lst_t *proc_lst) {
 }
 
 int			str_split(char *str, char **res, uint64_t n_res) {
-	uint64_t	i, in = 0, j = 0;
+	uint64_t	i, in = 0, j = 0, len = strlen(str);
 
-	for (i = 0; i < strlen(str); ++i) {
+	for (i = 0; i < len; ++i) {
 		if (isspace(str[i])) {
 			str[i] = '\0';
 			in = 0;
@@ -231,7 +233,7 @@ int			str_split(char *str, char **res, uint64_t n_res) {
 		else if (!in) {
 			if (j == n_res)
 				return (-1);
-			res[j++] = &str[i];\
+			res[j++] = &str[i];
 			in = 1;
 		}
 	}
@@ -240,29 +242,19 @@ int			str_split(char *str, char **res, uint64_t n_res) {
 	return (0);
 }
 
-/*
-int			vec_to_env(vec_t *vec, char **env) {
-	uint64_t	i;
-
-	for (i = 0; i < dic->keys->sz; ++i)
-		env[i] = dic->keys;
-}
-*/
-
-/*
 int			proc_run(proc_t *proc) {
 	pid_t	pid;
 	char	*args[STD_MAX];
-	char	env[STD_MAX][STD_MAX];
 
 	if ((pid = fork()) == -1)
 		return (-1);
-	else if (pid)
+	else if (pid) {
 		proc->pid = pid;
+	}
 	else if (!pid) {
 		if (str_split(proc->cmd, args, STD_MAX)
-			|| execve(proc->cmd, args, env) == -1)
-			return (-1);
+			|| execve(proc->cmd, args, (char **)proc->env->data) == -1)
+			exit(1);
 	}
 	return (0);
 }
@@ -273,7 +265,7 @@ int			proc_lst_run(proc_lst_t *proc_lst) {
 
 	for (i = 0; i < proc_lst->sz; ++i) {
 		if (proc_lst->data[i].autostart) {
-			if (proc_run(proc_lst->data[i], env) == -1) {
+			if (proc_run(&proc_lst->data[i]) == -1) {
 				ret = -1;
 				fprintf(stderr, "Error: %s can't be run.\n", proc_lst->data[i].name);
 			}
@@ -281,10 +273,10 @@ int			proc_lst_run(proc_lst_t *proc_lst) {
 	}
 	return (ret);
 }
-*/
 
 //TODO:
 //autocompletion in prompt
+//liberation malloc exit_error
 
 int			main(int ac, char **av) {
 	prompt_t		prompt;
@@ -298,6 +290,8 @@ int			main(int ac, char **av) {
 	else if (config_init(&conf, av[1])
 		|| proc_lst_init(&proc_lst, &conf))
 		exit_error("Can't load config file");
+	if (proc_lst_run(&proc_lst) == -1)
+		exit_error("Fork failed");
 	prompt_init(&prompt, "> ");
 	while (42) {
 		if (prompt_query(&prompt, &cmd)) {
