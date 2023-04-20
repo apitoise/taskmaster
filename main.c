@@ -17,8 +17,7 @@
 #include <signal.h>
 #include <limits.h>
 
-#define	PROC_MAX	128
-#define MAP_ERR		((uint64_t)-1)
+#define	STD_MAX	128
 
 typedef struct		map_s {
 	char			*bools[2];
@@ -57,10 +56,11 @@ typedef struct		proc_s {
 	dict_t			*env;
 	char			*workingdir;
 	uint64_t		umask;
+	pid_t			pid;
 }					proc_t;
 
 typedef struct		proc_lst_s {
-	proc_t			data[PROC_MAX];
+	proc_t			data[STD_MAX];
 	uint64_t		sz;
 }					proc_lst_t;
 
@@ -155,7 +155,7 @@ uint64_t	proc_map_str(uint64_t *out, char **in, char *str, uint64_t sz) {
 	for (i = 0; i < sz; ++i)
 		if (!strcmp(in[i], str))
 			return (out ? out[i] : i);
-	return (MAP_ERR);
+	return (U_ERROR);
 }
 
 int			proc_init(proc_t *proc, char *name, dict_t *opts) {
@@ -166,14 +166,14 @@ int			proc_init(proc_t *proc, char *name, dict_t *opts) {
 	proc->name = name;
 	if (dic_get_unwrap(opts, "cmd", (void **)&proc->cmd, proc->name, DT_STR) < 0
 		|| dic_get_unwrap(opts, "autostart", (void **)&str, "false", DT_STR) < 0
-		|| (proc->autostart = proc_map_str(NULL, g_map.bools, str, 2)) == MAP_ERR
+		|| (proc->autostart = proc_map_str(NULL, g_map.bools, str, 2)) == U_ERROR
 		|| dic_get_unwrap(opts, "autorestart", (void **)&str, "unexpected", DT_STR) < 0
-		|| (proc->autorestart = proc_map_str(NULL, g_map.auto_r, str, 3)) == MAP_ERR
+		|| (proc->autorestart = proc_map_str(NULL, g_map.auto_r, str, 3)) == U_ERROR
 		|| dic_get_unwrap(opts, "exitcodes", (void **)&vec, NULL, DT_VEC) < 0
 		|| dic_get_unwrap(opts, "starttime", (void **)&proc->starttime, (void *)5, DT_UNB) < 0
 		|| dic_get_unwrap(opts, "startretries", (void **)&proc->startretries, NULL, DT_UNB) < 0
 		|| dic_get_unwrap(opts, "stopsignal", (void **)&str, "INT", DT_STR) < 0
-		|| (proc->stopsignal = proc_map_str(g_map.sigs_v, g_map.sigs_s, str, 7)) == MAP_ERR
+		|| (proc->stopsignal = proc_map_str(g_map.sigs_v, g_map.sigs_s, str, 7)) == U_ERROR
 		|| dic_get_unwrap(opts, "stoptime", (void **)&proc->stoptime, (void *)10, DT_UNB) < 0
 		|| dic_get_unwrap(opts, "stdout", (void **)&proc->std_out, "", DT_STR) < 0
 		|| dic_get_unwrap(opts, "stderr", (void **)&proc->std_err, "", DT_STR) < 0
@@ -201,7 +201,7 @@ int			proc_lst_init(proc_lst_t *proc_lst, conf_t *conf) {
 	uint64_t	i;
 
 	if (node_unwrap(conf->root, (void **)&root, DT_DIC)
-		|| root->keys->sz > PROC_MAX)
+		|| root->keys->sz > STD_MAX)
 		return (-1);
 	proc_lst->sz = 0;
 	for (i = 0; i < root->keys->sz; ++i, ++proc_lst->sz) {
@@ -219,27 +219,74 @@ void		proc_lst_free(proc_lst_t *proc_lst) {
 		proc_free(&proc_lst->data[i]);
 }
 
-//static void	cmd_proc(proc_t *proc, char **env) {
-//	pid_t	pid;
-//	for (int i = 0; i < 3; ++i) {
-//		if ((pid = fork()) == -1)
-//			fprintf(stderr, "fork fail");
-//		else if (pid)
-//			proc->proc_pid[i] = pid;
-//		else if (!pid) {
-//			if (execve(proc->proc_cmd[i], proc->proc_args[i], env) == -1)
-//				fprintf(stderr, "execve fail");
-//		}
-//	}
-//}
+int			str_split(char *str, char **res, uint64_t n_res) {
+	uint64_t	i, in = 0, j = 0;
+
+	for (i = 0; i < strlen(str); ++i) {
+		if (isspace(str[i])) {
+			str[i] = '\0';
+			in = 0;
+		}
+		else if (!in) {
+			if (j == n_res)
+				return (-1);
+			res[j++] = &str[i];\
+			in = 1;
+		}
+	}
+	str[i] = '\0';
+	res[j] = NULL;
+	return (0);
+}
+
+int			dic_to_env(dict_t *dic, char **env) {
+	uint64_t	i;
+
+	for (i = 0; i < dic->keys->sz; ++i)
+		env[i] = dic->keys;
+}
+
+int			proc_run(proc_t *proc) {
+	pid_t	pid;
+	char	*args[STD_MAX];
+	char	env[STD_MAX][STD_MAX];
+
+	if ((pid = fork()) == -1)
+		return (-1);
+	else if (pid)
+		proc->pid = pid;
+	else if (!pid) {
+		if (str_split(proc->cmd, args, STD_MAX)
+			|| execve(proc->cmd, args, env) == -1)
+			return (-1);
+	}
+	return (0);
+}
+
+int			proc_lst_run(proc_lst_t *proc_lst) {
+	uint64_t	i;
+	int			ret = 0;
+
+	for (i = 0; i < proc_lst->sz; ++i) {
+		if (proc_lst->data[i].autostart) {
+			if (proc_run(proc_lst->data[i], env) == -1) {
+				ret = -1;
+				fprintf(stderr, "Error: %s can't be run.\n", proc_lst->data[i].name);
+			}
+		}
+	}
+	return (ret);
+}
 
 //TODO:
 //autocompletion in prompt
 
-int			main(int ac, char **av, char **env) {
+
+
+int			main(int ac, char **av) {
 	prompt_t		prompt;
 	cmd_t			cmd;
-	proc_lst_t		proc_lst;
+	proc_lst_t		proc_lst = { 0 };
 	action_t		action;
 	conf_t			conf;
 
@@ -249,13 +296,6 @@ int			main(int ac, char **av, char **env) {
 	else if (config_init(&conf, av[1])
 		|| proc_lst_init(&proc_lst, &conf))
 		exit_error("Can't load config file");
-	proc_print(&proc_lst.data[0]);
-	printf("\n");
-	proc_print(&proc_lst.data[1]);
-	printf("\n");
-	proc_print(&proc_lst.data[2]);
-	printf("\n");
-
 	prompt_init(&prompt, "> ");
 	while (42) {
 		if (prompt_query(&prompt, &cmd)) {

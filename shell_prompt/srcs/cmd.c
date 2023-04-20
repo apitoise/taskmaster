@@ -48,11 +48,13 @@ void	cmd_print(const cmd_t *cmd, uint64_t idx, char *bef) {
 uint64_t	cmd_split(cmd_t *cmd, char **res, uint64_t n_res) {
 	uint64_t	i, in = 0, j = 0;
 
-	for (i = 0; i < cmd->sz && j < n_res; ++i) {
+	for (i = 0; i < cmd->sz; ++i) {
 		if (isspace(cmd->buff[i])) {
 			cmd->buff[i] = '\0';
 			in = 0;
 		} else if (!in) {
+			if (n_res == j)
+				return (U_ERROR);
 			res[j++] = &cmd->buff[i];
 			in = 1;
 		}

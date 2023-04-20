@@ -15,6 +15,8 @@
 
 #include "includes.h"
 
+#define U_ERROR	((uint64_t)-1)
+
 typedef struct		cmd_s {
 	char			buff[MAX_SZ + 1];
 	uint64_t		sz;
