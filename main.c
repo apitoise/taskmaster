@@ -51,6 +51,7 @@ typedef enum		restart_pol_e {
 typedef struct		proc_s {
 	char			*name;
 	char			*cmd;
+	uint64_t		numprocs;
 	uint64_t		autostart;
 	uint64_t		autorestart;
 	vec_t			*exitcodes;
@@ -86,27 +87,6 @@ int			dic_get_unwrap(dict_t *dic, char *key, void **dst, void *def, data_type_t 
 	return (0);
 }
 
-/*
-dict_t		*dic_unwrap(dict_t *dic, data_type_t type) {
-	uint64_t	i;
-	dict_t		*new;
-	void		*val;
-
-	if (!(new = dict_new(1)))
-		return (NULL);
-	if (!dic)
-		return (new);
-	for (i = 0; i < dic->keys->sz; ++i) {
-		if (node_unwrap(dic->values->data[i], &val, type)) {
-			dict_free(new);
-			return (NULL);
-		}
-		dict_set(new, dic->keys->data[i], val);	
-	}
-	return (new);
-}
-*/
-
 vec_t		*vec_unwrap(vec_t *vec, data_type_t type) {
 	uint64_t	i;
 	vec_t		*new;
@@ -131,6 +111,7 @@ void		proc_print(proc_t *proc) {
 
 	printf("name: \"%s\"\n", proc->name);
 	printf("cmd: \"%s\"\n", proc->cmd);
+	printf("numprocs: \"%lu\"\n", proc->numprocs);
 	printf("autostart: \"%s\"\n", g_map.bools[proc->autostart]);
 	printf("autorestart: \"%s\"\n", g_map.auto_r[proc->autorestart]);
 	printf("exit_code: [ ");
@@ -173,6 +154,7 @@ int			proc_init(proc_t *proc, char *name, dict_t *opts) {
 
 	proc->name = name;
 	if (dic_get_unwrap(opts, "cmd", (void **)&proc->cmd, proc->name, DT_STR) < 0
+		|| dic_get_unwrap(opts, "numprocs", (void **)&proc->numprocs, (void *)1, DT_UNB) < 0
 		|| dic_get_unwrap(opts, "autostart", (void **)&str, "false", DT_STR) < 0
 		|| (proc->autostart = proc_map_str(NULL, g_map.bools, str, 2)) == U_ERROR
 		|| dic_get_unwrap(opts, "autorestart", (void **)&str, "unexpected", DT_STR) < 0
@@ -282,14 +264,17 @@ int			proc_run(proc_t *proc) {
 }
 
 int			proc_lst_run(proc_lst_t *proc_lst) {
-	uint64_t	i;
+	uint64_t	i, procs_nb;
 	int			ret = 0;
 
 	for (i = 0; i < proc_lst->sz; ++i) {
 		if (proc_lst->data[i].autostart) {
-			if (proc_run(&proc_lst->data[i]) == -1) {
-				ret = -1;
-				fprintf(stderr, "Error: %s can't be run.\n", proc_lst->data[i].name);
+			for (procs_nb = 0; procs_nb < proc_lst->data[i].numprocs; ++procs_nb) {
+				if (proc_run(&proc_lst->data[i]) == -1) {
+					ret = -1;
+					fprintf(stderr, "Error: %s %lu/%lu can't be run.\n"
+						, proc_lst->data[i].name, procs_nb, proc_lst->data[i].numprocs);
+				}
 			}
 		}
 	}
