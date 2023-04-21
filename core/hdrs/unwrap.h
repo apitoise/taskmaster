@@ -1,31 +1,23 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   action.h                                           :+:      :+:    :+:   */
+/*   unwrap.h                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/04/21 16:39:45 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/21 17:07:16 by fcadet           ###   ########.fr       */
+/*   Created: 2023/04/21 19:05:55 by fcadet            #+#    #+#             */
+/*   Updated: 2023/04/21 19:12:49 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef ACTION_H
-#define ACTION_H
+#ifndef UNWRAP_H
+#define UNWRAP_H
 
 #include "includes.h"
 
-typedef enum	act_res_e {
-	AR_CONT,
-	AR_STOP,
-	AR_ERR,
-}				act_res_t;
+int			node_unw(node_t *node, void **dst, data_type_t type);
+int			dic_get_unw(dict_t *dic, char *key, void **dst,
+	void *def, data_type_t type);
+vec_t		*vec_unw(vec_t *vec, data_type_t type);
 
-typedef struct	action_s {
-	char		*cmds[STD_MAX];
-	uint64_t	sz;
-}				action_t;
-
-act_res_t	action_call(action_t *action);
-
-#endif // ACTION_H
+#endif // UNWRAP_H
