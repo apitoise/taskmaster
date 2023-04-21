@@ -6,7 +6,7 @@
 /*   By: herrfalco <fcadet@student.42.fr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/27 11:16:03 by herrfalco         #+#    #+#             */
-/*   Updated: 2023/04/01 20:19:26 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/21 16:20:34 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,28 +15,20 @@
 static struct termios		g_term;
 static in_buff_t			g_in_buff = { 0 };
 
-static void __attribute__((constructor))	term_init(void) {
+int		term_init(void) {
 	struct termios	new_term;
 
-    if (tcgetattr(STDIN_FILENO, &g_term)) {
-		fprintf(stderr, "Error: Can't get terminal attributes\n");
-		exit(1);
-	}
+    if (tcgetattr(STDIN_FILENO, &g_term))
+		return (-1);
 	new_term = g_term;
 	new_term.c_lflag &= ~(ICANON | ECHO);
 	new_term.c_cc[VMIN] = 1;
 	new_term.c_cc[VTIME] = 0;
-    if (tcsetattr(STDIN_FILENO, TCSANOW, &new_term)) {
-		fprintf(stderr, "Error: Can't modify terminal attributes\n");
-		exit(2);
-	}
+    return (tcsetattr(STDIN_FILENO, TCSANOW, &new_term));
 }
 
-static void __attribute__((destructor))		term_fini(void) {
-	if (tcsetattr(STDIN_FILENO, TCSANOW, &g_term)) {
-		fprintf(stderr, "Error: Can't restore terminal attibutes\n");
-		exit(3);
-	}
+int		 term_fini(void) {
+	return (tcsetattr(STDIN_FILENO, TCSANOW, &g_term));
 }
 
 int		term_pop(void) {

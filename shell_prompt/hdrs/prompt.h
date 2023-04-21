@@ -6,7 +6,7 @@
 /*   By: herrfalco <fcadet@student.42.fr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/27 11:55:15 by herrfalco         #+#    #+#             */
-/*   Updated: 2023/03/28 09:36:33 by herrfalco        ###   ########.fr       */
+/*   Updated: 2023/04/21 16:04:14 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,8 @@ typedef struct		prompt_s {
 	uint64_t		cur_pos;
 }					prompt_t;
 
-void	prompt_init(prompt_t *prompt, const char *hdr);
+int		prompt_init(prompt_t *prompt, const char *hdr);
+void	prompt_fini(prompt_t *prompt);
 int		prompt_query(prompt_t *prompt, cmd_t *cmd);
 
 #endif // PROMPT_H
