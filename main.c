@@ -27,6 +27,12 @@ typedef struct		map_s {
 	uint64_t		sigs_v[11];
 }					map_t;
 
+/*
+Running x/y (x Failed, x Stopped)
+Stopped
+Failed
+*/
+
 static map_t		g_map = {
 	.bools = { "false", "true" },
 	.auto_r = { "always", "never", "unexpected" },
@@ -242,6 +248,18 @@ int			str_split(char *str, char **res, uint64_t n_res) {
 	return (0);
 }
 
+static int	proc_redirect(int old_fd, char *new_path) {
+	int	new_fd;
+	if (*new_path
+		&& (new_fd = open(new_path, O_WRONLY | O_CREAT | O_APPEND, 0666)) != -1) {
+		if (dup2(new_fd, old_fd) == -1) {
+			close(new_fd);
+			return (-1);
+		}
+	}
+	return (0);
+}
+
 int			proc_run(proc_t *proc) {
 	pid_t	pid;
 	char	*args[STD_MAX];
@@ -250,10 +268,14 @@ int			proc_run(proc_t *proc) {
 		return (-1);
 	else if (pid) {
 		proc->pid = pid;
+		if (time(&proc->timestamp) == -1)
+			return (-1);
 	}
 	else if (!pid) {
-		if (str_split(proc->cmd, args, STD_MAX)
-			|| execve(proc->cmd, args, (char **)proc->env->data) == -1)
+		if (proc_redirect(STDOUT_FILENO, proc->std_out)
+			|| proc_redirect(STDERR_FILENO, proc->std_err)
+			|| str_split(proc->cmd, args, STD_MAX)
+			|| execve(proc->cmd, args, (char **)proc->env->data))
 			exit(1);
 	}
 	return (0);
