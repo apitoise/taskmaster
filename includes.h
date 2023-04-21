@@ -1,31 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.c                                             :+:      :+:    :+:   */
+/*   includes.h                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/03/22 20:47:06 by fcadet            #+#    #+#             */
-/*   Updated: 2023/03/28 10:04:28 by herrfalco        ###   ########.fr       */
+/*   Created: 2023/04/21 16:30:31 by fcadet            #+#    #+#             */
+/*   Updated: 2023/04/21 16:31:20 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../hdrs/prompt.h"
-#include "../hdrs/builtin.h"
+#ifndef INCLUDES_H
+#define INCLUDES_H
 
-int			main(void) {
-	prompt_t		prompt;
-	cmd_t			cmd;
+#include "shell_prompt/hdrs/prompt.h"
+#include "config/config.h"
+#include <signal.h>
+#include <limits.h>
+#include <time.h>
 
-	prompt_init(&prompt, "> ");
-	while (42) {
-		if (prompt_query(&prompt, &cmd)) {
-			fprintf(stderr, "Error: Can't get command\n");
-			exit(4);
-		}
-		parse_cmd(&cmd);
-//		cmd_print(&cmd, 0, NULL);
-		printf("\n");
-	}
-	return (0);
-}
+#define	STD_MAX	128
+
+#endif // INCLUDES_H
+

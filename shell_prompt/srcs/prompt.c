@@ -6,16 +6,24 @@
 /*   By: herrfalco <fcadet@student.42.fr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/27 11:58:05 by herrfalco         #+#    #+#             */
-/*   Updated: 2023/03/28 12:57:26 by herrfalco        ###   ########.fr       */
+/*   Updated: 2023/04/21 17:08:30 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../hdrs/prompt.h"
 
-void	prompt_init(prompt_t *prompt, const char *hdr) {
+int		prompt_init(prompt_t *prompt, const char *hdr) {
+	if (term_init())
+		return (-1);
 	bzero(prompt, sizeof(prompt_t));
 	prompt->hdr = hdr;
 	prompt->hist_idx = SPE_VAL;
+	return (0);
+}
+
+void	prompt_fini(prompt_t *prompt) {
+	(void)prompt;
+	term_fini();
 }
 
 static int		new_line(prompt_t *prompt) {

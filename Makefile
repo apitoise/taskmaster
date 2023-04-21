@@ -2,12 +2,10 @@ NAME	=	taskmaster
 SRCS	=	shell_prompt/srcs/cmd.c \
 		shell_prompt/srcs/hist.c \
 		shell_prompt/srcs/in_buff.c \
-		main.c \
 		shell_prompt/srcs/prompt.c \
 		shell_prompt/srcs/term.c \
-		shell_jobs/action.c \
-		shell_jobs/parse_cmd.c \
-		utils/srcs/exit_error.c \
+		main.c \
+		action.c \
 		config/config.c \
 		vector/vector.c \
 		dict/dict.c

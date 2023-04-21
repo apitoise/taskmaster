@@ -6,19 +6,11 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/22 20:47:06 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/20 17:52:42 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/21 17:07:53 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "shell_prompt/hdrs/prompt.h"
-#include "shell_jobs/action.h"
-#include "utils/hdrs/utils.h"
-#include "config/config.h"
-#include <signal.h>
-#include <limits.h>
-#include <time.h>
-
-#define	STD_MAX	128
+#include "action.h"
 
 typedef struct		map_s {
 	char			*bools[2];
@@ -72,6 +64,14 @@ typedef struct		proc_lst_s {
 	proc_t			data[STD_MAX];
 	uint64_t		sz;
 }					proc_lst_t;
+
+typedef struct		clean_up_s {
+	proc_lst_t		*proc_lst;
+	prompt_t		*prompt;
+	conf_t			*config;
+}					clean_up_t;
+
+static clean_up_t	g_clean_up = { 0 };
 
 int			node_unwrap(node_t *node, void **dst, data_type_t type) {
 	*dst = node->data;
@@ -210,6 +210,16 @@ void		proc_lst_free(proc_lst_t *proc_lst) {
 		proc_free(&proc_lst->data[i]);
 }
 
+void	clean_exit(char *error, int ret) {
+	if (error)
+		fprintf(stderr, "Error: %s\n", error);
+	if (g_clean_up.proc_lst)
+		proc_lst_free(g_clean_up.proc_lst);
+	if (g_clean_up.prompt)
+		prompt_fini(g_clean_up.prompt);
+	exit(ret);
+}
+
 int			str_split(char *str, char **res, uint64_t n_res) {
 	uint64_t	i, in = 0, j = 0, len = strlen(str);
 
@@ -232,6 +242,7 @@ int			str_split(char *str, char **res, uint64_t n_res) {
 
 static int	proc_redirect(int old_fd, char *new_path) {
 	int	new_fd;
+
 	if (*new_path
 		&& (new_fd = open(new_path, O_WRONLY | O_CREAT | O_APPEND, 0666)) != -1) {
 		if (dup2(new_fd, old_fd) == -1) {
@@ -252,8 +263,7 @@ int			proc_run(proc_t *proc) {
 		proc->pid = pid;
 		if (time(&proc->timestamp) == -1)
 			return (-1);
-	}
-	else if (!pid) {
+	} else if (!pid) {
 		if (proc_redirect(STDOUT_FILENO, proc->std_out)
 			|| proc_redirect(STDERR_FILENO, proc->std_err)
 			|| str_split(proc->cmd, args, STD_MAX)
@@ -293,23 +303,25 @@ int			main(int ac, char **av) {
 	conf_t			conf;
 
 	if (ac != 2)
-		exit_error("Wrong number of arguments: ./taskmaster [conf file]");
-	else if (config_init(&conf, av[1])
-		|| proc_lst_init(&proc_lst, &conf))
-		exit_error("Can't load config file");
+		clean_exit("Wrong number of arguments: ./taskmaster [conf file]", 1);
+	if (config_init(&conf, av[1]))
+		clean_exit("Can't load config file", 2);
+	g_clean_up.config = &conf;
+	if (proc_lst_init(&proc_lst, &conf))
+		clean_exit("Can't init program's list", 3);
+	g_clean_up.proc_lst = &proc_lst;
 	if (proc_lst_run(&proc_lst) == -1)
-		exit_error("Fork failed");
-	prompt_init(&prompt, "> ");
+		clean_exit("Fork failed", 4);
+	if (prompt_init(&prompt, "> "))
+		clean_exit("Can init prompt", 5);
+	g_clean_up.prompt = &prompt;
 	while (42) {
-		if (prompt_query(&prompt, &cmd)) {
-			fprintf(stderr, "Error: Can't get command\n");
-			proc_lst_free(&proc_lst);
-			exit(4);
-		}
-		action.sz = cmd_split(&cmd, action.cmd, 2);
-		parse_cmd(&action);
+		if (prompt_query(&prompt, &cmd))
+			clean_exit("Can't access terminal", 6);
+		action.sz = cmd_split(&cmd, action.cmds, 2);
+		if (action_call(&action) == AR_STOP)
+			break;
 		printf("\n");
 	}
-	proc_lst_free(&proc_lst);
-	return (0);
+	clean_exit(NULL, 0);
 }
