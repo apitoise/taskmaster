@@ -1,31 +1,24 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   action.h                                           :+:      :+:    :+:   */
+/*   prog_dic.h                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/04/21 16:39:45 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/22 16:49:37 by fcadet           ###   ########.fr       */
+/*   Created: 2023/04/22 14:07:14 by fcadet            #+#    #+#             */
+/*   Updated: 2023/04/22 16:48:35 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef ACTION_H
-#define ACTION_H
+#ifndef PROG_DIC_H
+#define PROG_DIC_H
 
-#include "prog_dic.h"
+#include "prog.h"
 
-typedef enum	act_res_e {
-	AR_CONT,
-	AR_STOP,
-	AR_ERR,
-}				act_res_t;
+typedef dict_t		prog_dic_t;
 
-typedef struct	action_s {
-	char		*cmds[STD_MAX];
-	uint64_t	sz;
-}				action_t;
+prog_dic_t			*prog_dic_new(conf_t *conf);
+void				prog_dic_free(prog_dic_t *prog_dic);
+int					prog_dic_run(prog_dic_t *prog_dic, char *name);
 
-act_res_t	action_call(action_t *action);
-
-#endif // ACTION_H
+#endif //PROG_DIC_H

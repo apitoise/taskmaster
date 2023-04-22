@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 18:06:30 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/21 19:11:59 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/22 16:47:50 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,6 @@ typedef struct		proc_s {
 }					proc_t;
 
 typedef struct		prog_s {
-	char			*name;
 	char			*cmd;
 	uint64_t		numprocs;
 	uint64_t		autostart;
@@ -46,7 +45,7 @@ typedef struct		map_s {
 	uint64_t		sigs_v[11];
 }					map_t;
 
-int			prog_init(prog_t *prog, char *name, dict_t *opts);
+prog_t		*prog_new(char *name, dict_t *opts);
 void		prog_free(prog_t *prog);
 void		prog_print(prog_t *prog);
 int			prog_run(prog_t *prog);

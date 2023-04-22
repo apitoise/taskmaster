@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/13 22:16:40 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/19 15:58:52 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/22 17:31:40 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -242,41 +242,46 @@ void	config_print(conf_t *conf) {
 }
 
 void	config_free(conf_t *conf) {
-	munmap(conf->map.data, conf->map.sz);
-	rec_free(conf->root);
+	if (conf->map.data)
+		munmap(conf->map.data, conf->map.sz);
+	if (conf->root)
+		rec_free(conf->root);
+	free(conf);
 }
 
-int		config_init(conf_t *conf, char *path) {
+conf_t	*config_new(char *path) {
 	int				fd;
 	struct stat		stat;
 	node_getter_t	node_fn;
+	conf_t			*new = NULL;
 
 	if ((fd = open(path, O_RDONLY)) < 0)
-		return (-1);
-	if (fstat(fd, &stat) < 0) {
-		close(fd);
-		return (-1);
-	}
-	if ((conf->map.data = mmap(NULL, stat.st_size,
+		return (NULL);
+	if (fstat(fd, &stat) < 0
+		|| !(new = malloc(sizeof(conf_t)))
+		|| (new->map.data = mmap(NULL, stat.st_size,
 		PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0))
 		== MAP_FAILED) {
 		close(fd);
-		return (-1);
+		if (new)
+			free(new);
+		return (NULL);
 	}
 	close(fd);
-	conf->map.sz = stat.st_size;
-	conf->map.idx = 0;
-	if (!(node_fn = sel_node_getter(&conf->map))
-		|| !(conf->root = node_fn(&conf->map))) {
-		munmap(conf->map.data, conf->map.sz);
-		return (-1);
+	bzero(new, sizeof(conf_t));
+	new->map.sz = stat.st_size;
+	new->map.idx = 0;
+	if (!(node_fn = sel_node_getter(&new->map))
+		|| !(new->root = node_fn(&new->map))) {
+		config_free(new);
+		return (NULL);
 	}
-	skip_ign(&conf->map);
-	if (conf->map.idx != conf->map.sz) {
-		config_free(conf);
-		return (-1);
+	skip_ign(&new->map);
+	if (new->map.idx != new->map.sz) {
+		config_free(new);
+		return (NULL);
 	}
-	return (0);
+	return (new);
 }
 
 /*

@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/13 22:20:00 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/17 18:36:41 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/22 17:33:25 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,8 @@ typedef struct		conf_s {
 
 typedef node_t		*(*node_getter_t)(conf_map_t *conf);
 
-int		config_init(conf_t *conf, char *path);
-void	config_print(conf_t *conf);
+conf_t		*config_new(char *path);
+void		config_free(conf_t *conf);
+void		config_print(conf_t *conf);
 
 #endif // CONFIG_H

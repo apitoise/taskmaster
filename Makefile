@@ -4,8 +4,11 @@ SRCS	=	shell_prompt/srcs/cmd.c \
 		shell_prompt/srcs/in_buff.c \
 		shell_prompt/srcs/prompt.c \
 		shell_prompt/srcs/term.c \
-		main.c \
-		action.c \
+		core/srcs/main.c \
+		core/srcs/action.c \
+		core/srcs/prog.c \
+		core/srcs/prog_dic.c \
+		core/srcs/unwrap.c \
 		config/config.c \
 		vector/vector.c \
 		dict/dict.c

@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 18:00:57 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/21 19:22:06 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/22 17:41:31 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,40 +30,41 @@ static uint64_t		map_str(uint64_t *out, char **in, char *str, uint64_t sz) {
 	return (U_ERROR);
 }
 
-int			prog_init(prog_t *prog, char *name, dict_t *opts) {
+prog_t			*prog_new(char *name, dict_t *opts) {
 	char 		*str;
 	vec_t		*ex_cds, *env;
+	prog_t		*new;
 
-	bzero(prog, sizeof(prog_t));
-	prog->name = name;
-	if (dic_get_unw(opts, "cmd", (void **)&prog->cmd, prog->name, DT_STR)
-		|| dic_get_unw(opts, "numprocs", (void **)&prog->numprocs, (void *)1, DT_UNB)
-		|| !prog->numprocs
+	if (!(new = malloc(sizeof(prog_t))))
+		return (NULL);
+	bzero(new, sizeof(prog_t));
+	if (dic_get_unw(opts, "cmd", (void **)&new->cmd, name, DT_STR)
+		|| dic_get_unw(opts, "numprocs", (void **)&new->numprocs, (void *)1, DT_UNB)
+		|| !new->numprocs
 		|| dic_get_unw(opts, "autostart", (void **)&str, "false", DT_STR)
-		|| (prog->autostart = map_str(NULL, g_map.bools, str, 2)) == U_ERROR
+		|| (new->autostart = map_str(NULL, g_map.bools, str, 2)) == U_ERROR
 		|| dic_get_unw(opts, "autorestart", (void **)&str, "unexpected", DT_STR)
-		|| (prog->autorestart = map_str(NULL, g_map.auto_r, str, 3)) == U_ERROR
+		|| (new->autorestart = map_str(NULL, g_map.auto_r, str, 3)) == U_ERROR
 		|| dic_get_unw(opts, "exitcodes", (void **)&ex_cds, NULL, DT_VEC)
-		|| dic_get_unw(opts, "starttime", (void **)&prog->starttime, (void *)5, DT_UNB)
-		|| dic_get_unw(opts, "startretries", (void **)&prog->startretries, NULL, DT_UNB)
+		|| dic_get_unw(opts, "starttime", (void **)&new->starttime, (void *)5, DT_UNB)
+		|| dic_get_unw(opts, "startretries", (void **)&new->startretries, NULL, DT_UNB)
 		|| dic_get_unw(opts, "stopsignal", (void **)&str, "INT", DT_STR)
-		|| (prog->stopsignal = map_str(g_map.sigs_v, g_map.sigs_s, str, 7)) == U_ERROR
-		|| dic_get_unw(opts, "stoptime", (void **)&prog->stoptime, (void *)10, DT_UNB)
-		|| dic_get_unw(opts, "stdout", (void **)&prog->std_out, "", DT_STR)
-		|| dic_get_unw(opts, "stderr", (void **)&prog->std_err, "", DT_STR)
+		|| (new->stopsignal = map_str(g_map.sigs_v, g_map.sigs_s, str, 7)) == U_ERROR
+		|| dic_get_unw(opts, "stoptime", (void **)&new->stoptime, (void *)10, DT_UNB)
+		|| dic_get_unw(opts, "stdout", (void **)&new->std_out, "", DT_STR)
+		|| dic_get_unw(opts, "stderr", (void **)&new->std_err, "", DT_STR)
 		|| dic_get_unw(opts, "env", (void **)&env, NULL, DT_VEC)
-		|| dic_get_unw(opts, "workingdir", (void **)&prog->workingdir, "", DT_STR)
-		|| dic_get_unw(opts, "umask", (void **)&prog->umask, NULL, DT_UNB))
-		return (-1);
-	if (!(prog->exitcodes = vec_unw(ex_cds, DT_UNB))
-		|| !(prog->env = vec_unw(env, DT_STR))
-		|| !(prog->procs = vec_new(prog->numprocs))
-		|| (!prog->exitcodes->sz && vec_push_back(prog->exitcodes, 0))
-		|| (vec_push_back(prog->env, NULL))) {
-		prog_free(prog);
-		return (-1);
+		|| dic_get_unw(opts, "workingdir", (void **)&new->workingdir, "", DT_STR)
+		|| dic_get_unw(opts, "umask", (void **)&new->umask, NULL, DT_UNB)
+		|| !(new->exitcodes = vec_unw(ex_cds, DT_UNB))
+		|| !(new->env = vec_unw(env, DT_STR))
+		|| !(new->procs = vec_new(new->numprocs))
+		|| (!new->exitcodes->sz && vec_push_back(new->exitcodes, 0))
+		|| (vec_push_back(new->env, NULL))) {
+		prog_free(new);
+		return (NULL);
 	}
-	return (0);
+	return (new);
 }
 
 void		prog_free(prog_t *prog) {
@@ -78,12 +79,12 @@ void		prog_free(prog_t *prog) {
 			free(prog->procs->data[i]);
 		vec_free(prog->procs);
 	}
+	free(prog);
 }
 
 void		prog_print(prog_t *prog) {
 	uint64_t	i;
 
-	printf("name: \"%s\"\n", prog->name);
 	printf("cmd: \"%s\"\n", prog->cmd);
 	printf("numprocs: \"%lu\"\n", prog->numprocs);
 	printf("autostart: \"%s\"\n", g_map.bools[prog->autostart]);
@@ -155,9 +156,11 @@ int			prog_run(prog_t *prog) {
 		if (!(new_proc = malloc(sizeof(proc_t)))
 			|| vec_push_back(prog->procs, new_proc)
 			|| time(&new_proc->timestamp) == -1
-			|| (new_proc->pid = fork()) == -1)
+			|| (new_proc->pid = fork()) == -1) {
+			if (new_proc)
+				free(new_proc);
 			return (-1);
-		else if (!new_proc->pid) {
+		} else if (!new_proc->pid) {
 			if (io_redirect(STDOUT_FILENO, prog->std_out)
 				|| io_redirect(STDERR_FILENO, prog->std_err)
 				|| str_split(prog->cmd, args, STD_MAX)

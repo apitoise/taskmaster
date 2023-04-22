@@ -6,11 +6,11 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 16:31:29 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/21 17:07:01 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/22 14:03:14 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "action.h"
+#include "../hdrs/action.h"
 
 void	action_status(void) {
 	printf("STATUS");
