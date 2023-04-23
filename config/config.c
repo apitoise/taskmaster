@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/13 22:16:40 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/22 17:31:40 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/23 09:25:38 by herrfalco        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,7 @@ static void		rec_free(node_t *node) {
 			dict_free(dic);
 			break;
 		default:
+			;
 	}
 	free(node);
 }
@@ -232,7 +233,11 @@ static void		rec_print(node_t *node, uint64_t indent) {
 			printf("}");
 			break;
 		case DT_UNB:
+#ifdef __APPLE__
+			printf("%llu", (uint64_t)node->data);
+#else
 			printf("%lu", (uint64_t)node->data);
+#endif // __APPLE__
 	}
 }
 

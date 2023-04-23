@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/31 15:30:38 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/15 23:02:22 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/23 09:27:15 by herrfalco        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,11 @@ void		dict_print(dict_t *dict) {
 
 	printf("{");
 	for (i = 0; i < dict->keys->sz; ++i) {
+#ifdef __APPLE__
+		printf("%s%s: 0x%llx%s",
+#else
 		printf("%s%s: 0x%lx%s",
+#endif // __APPLE__
 			!i ? " " : "",
 			(char *)dict->keys->data[i],
 			(uint64_t)dict->values->data[i],

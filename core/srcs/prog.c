@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 18:00:57 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/22 17:41:31 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/23 09:24:14 by herrfalco        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,20 +82,37 @@ void		prog_free(prog_t *prog) {
 	free(prog);
 }
 
+
 void		prog_print(prog_t *prog) {
 	uint64_t	i;
 
 	printf("cmd: \"%s\"\n", prog->cmd);
-	printf("numprocs: \"%lu\"\n", prog->numprocs);
 	printf("autostart: \"%s\"\n", g_map.bools[prog->autostart]);
 	printf("autorestart: \"%s\"\n", g_map.auto_r[prog->autorestart]);
+#ifdef __APPLE__
+	printf("umask: %s%llo\n", prog->umask ? "0" : "", prog->umask);
+	printf("stoptime: %llu\n", prog->stoptime);
+	printf("numprocs: \"%llu\"\n", prog->numprocs);
+	printf("starttime: %llu\n", prog->starttime);
+	printf("startretries: %llu\n", prog->startretries);
+	printf("exitcodes: [ ");
+	for (i = 0; i < prog->exitcodes->sz; ++i)
+		printf("%llu%s", (uint64_t)prog->exitcodes->data[i],
+			i + 1 < prog->exitcodes->sz ? ", " : " ");
+	printf("]\n");
+#else
+	printf("umask: %s%lo\n", prog->umask ? "0" : "", prog->umask);
+	printf("stoptime: %lu\n", prog->stoptime);
+	printf("numprocs: \"%lu\"\n", prog->numprocs);
+	printf("starttime: %lu\n", prog->starttime);
+	printf("startretries: %lu\n", prog->startretries);
 	printf("exitcodes: [ ");
 	for (i = 0; i < prog->exitcodes->sz; ++i)
 		printf("%lu%s", (uint64_t)prog->exitcodes->data[i],
 			i + 1 < prog->exitcodes->sz ? ", " : " ");
 	printf("]\n");
-	printf("starttime: %lu\n", prog->starttime);
-	printf("startretries: %lu\n", prog->startretries);
+#endif // __APPLE__
+	printf("workingdir: \"%s\"\n", prog->workingdir);
 	printf("stopsignal: ");
 	for (i = 0; i < 7; ++i) {
 		if ((uint64_t)prog->stopsignal == g_map.sigs_v[i]) {
@@ -103,15 +120,12 @@ void		prog_print(prog_t *prog) {
 			break;
 		}
 	}
-	printf("stoptime: %lu\n", prog->stoptime);
 	printf("stdout: \"%s\"\n", prog->std_out);
 	printf("stderr: \"%s\"\n", prog->std_err);
 	printf("env: {%s", prog->env->sz ? "\n" : " ");
 	for (i = 0; i < prog->env->sz; ++i)
 		printf("  \"%s\"\n", (char *)prog->env->data[i]);
 	printf("}\n");
-	printf("workingdir: \"%s\"\n", prog->workingdir);
-	printf("umask: %s%lo\n", prog->umask ? "0" : "", prog->umask);
 }
 
 static int	io_redirect(int old_fd, char *new_path) {

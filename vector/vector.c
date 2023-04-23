@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/30 16:45:51 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/17 17:51:18 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/23 09:26:28 by herrfalco        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,7 +36,11 @@ void		vec_print(vec_t *vec) {
 
 	printf("[");
 	for (i = 0; i < vec->sz; ++i)
+#ifdef __APPLE__
+		printf("%s0x%llx%s",
+#else
 		printf("%s0x%lx%s",
+#endif // __APPLE__
 			!i ? " " : "",
 			(uint64_t)vec->data[i],
 			i + 1 < vec->sz ? ", " : " ");
