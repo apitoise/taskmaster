@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 18:02:50 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/22 16:45:28 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/23 09:39:51 by herrfalco        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ prog_dic_t		*prog_dic_new(conf_t *conf) {
 			return (NULL);
 		}
 	}
-	return (0);
+	return (pdic_new);
 }
 
 void		prog_dic_free(prog_dic_t *prog_dic) {

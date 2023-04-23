@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/13 22:16:40 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/23 09:25:38 by herrfalco        ###   ########.fr       */
+/*   Updated: 2023/04/23 09:37:17 by herrfalco        ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -263,17 +263,19 @@ conf_t	*config_new(char *path) {
 	if ((fd = open(path, O_RDONLY)) < 0)
 		return (NULL);
 	if (fstat(fd, &stat) < 0
-		|| !(new = malloc(sizeof(conf_t)))
-		|| (new->map.data = mmap(NULL, stat.st_size,
+		|| !(new = malloc(sizeof(conf_t)))) {
+		close(fd);
+		return (NULL);
+	}
+	bzero(new, sizeof(conf_t));
+	if ((new->map.data = mmap(NULL, stat.st_size,
 		PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0))
 		== MAP_FAILED) {
 		close(fd);
-		if (new)
-			free(new);
+		free(new);
 		return (NULL);
 	}
 	close(fd);
-	bzero(new, sizeof(conf_t));
 	new->map.sz = stat.st_size;
 	new->map.idx = 0;
 	if (!(node_fn = sel_node_getter(&new->map))
