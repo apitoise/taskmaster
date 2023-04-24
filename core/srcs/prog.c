@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 18:00:57 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/23 09:24:14 by herrfalco        ###   ########.fr       */
+/*   Updated: 2023/04/24 11:01:42 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,7 @@ prog_t			*prog_new(char *name, dict_t *opts) {
 	if (!(new = malloc(sizeof(prog_t))))
 		return (NULL);
 	bzero(new, sizeof(prog_t));
+	new->name = name;
 	if (dic_get_unw(opts, "cmd", (void **)&new->cmd, name, DT_STR)
 		|| dic_get_unw(opts, "numprocs", (void **)&new->numprocs, (void *)1, DT_UNB)
 		|| !new->numprocs
@@ -164,6 +165,7 @@ static int	str_split(char *str, char **res, uint64_t n_res) {
 int			prog_run(prog_t *prog) {
 	uint64_t	i;
 	char		*args[STD_MAX];
+	static char	buff[STD_MAX * 2];
 	proc_t		*new_proc;
 
 	for (i = 0; i < prog->numprocs; ++i) {
@@ -178,8 +180,10 @@ int			prog_run(prog_t *prog) {
 			if (io_redirect(STDOUT_FILENO, prog->std_out)
 				|| io_redirect(STDERR_FILENO, prog->std_err)
 				|| str_split(prog->cmd, args, STD_MAX)
-				|| execve(prog->cmd, args, (char **)prog->env->data))
-				exit(1);
+				|| execve(prog->cmd, args, (char **)prog->env->data)) {
+				sprintf(buff, "Can't run %s", prog->name);
+//				clean_exit(buff, 1); // exit code number ?
+			}
 		}
 	}
 	return (0);

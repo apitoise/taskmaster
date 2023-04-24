@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 18:06:30 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/22 16:47:50 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/24 11:02:00 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #define PROG_H
 
 #include "unwrap.h"
+//#include "clean.h"
 
 typedef struct		proc_s {
 	pid_t			pid;
@@ -21,6 +22,7 @@ typedef struct		proc_s {
 }					proc_t;
 
 typedef struct		prog_s {
+	char			*name;
 	char			*cmd;
 	uint64_t		numprocs;
 	uint64_t		autostart;

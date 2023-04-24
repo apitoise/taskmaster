@@ -1,31 +1,27 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   action.h                                           :+:      :+:    :+:   */
+/*   clean.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/04/21 16:39:45 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/24 11:12:01 by fcadet           ###   ########.fr       */
+/*   Created: 2023/04/24 10:03:51 by fcadet            #+#    #+#             */
+/*   Updated: 2023/04/24 11:26:27 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef ACTION_H
-#define ACTION_H
+#include "../hdrs/clean.h"
 
-#include "clean.h"
+clean_t		g_clean = { 0 };
 
-typedef enum	act_res_e {
-	AR_CONT,
-	AR_STOP,
-	AR_ERR,
-}				act_res_t;
-
-typedef struct	action_s {
-	char		*cmds[STD_MAX];
-	uint64_t	sz;
-}				action_t;
-
-act_res_t	action_call(action_t *action);
-
-#endif // ACTION_H
+void	clean_exit(char *error, int ret) {
+	if (error)
+		fprintf(stderr, "Error: %s\n", error);
+	if (g_clean.prog_dic)
+		prog_dic_free(g_clean.prog_dic);
+	if (g_clean.config)
+		config_free(g_clean.config);
+	if (g_clean.prompt)
+		prompt_free(g_clean.prompt);
+	exit(ret);
+}

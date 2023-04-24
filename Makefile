@@ -6,6 +6,7 @@ SRCS	=	shell_prompt/srcs/cmd.c \
 		shell_prompt/srcs/term.c \
 		core/srcs/main.c \
 		core/srcs/action.c \
+		core/srcs/clean.c \
 		core/srcs/prog.c \
 		core/srcs/prog_dic.c \
 		core/srcs/unwrap.c \

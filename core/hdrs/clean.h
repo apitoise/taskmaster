@@ -1,31 +1,28 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   action.h                                           :+:      :+:    :+:   */
+/*   clean.h                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/04/21 16:39:45 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/24 11:12:01 by fcadet           ###   ########.fr       */
+/*   Created: 2023/04/24 10:04:27 by fcadet            #+#    #+#             */
+/*   Updated: 2023/04/24 11:26:34 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef ACTION_H
-#define ACTION_H
+#ifndef CLEAN_H
+#define CLEAN_H
 
-#include "clean.h"
+#include "prog_dic.h"
 
-typedef enum	act_res_e {
-	AR_CONT,
-	AR_STOP,
-	AR_ERR,
-}				act_res_t;
+typedef struct		clean_s {
+	prog_dic_t		*prog_dic;
+	conf_t			*config;
+	prompt_t		*prompt;
+}					clean_t;
 
-typedef struct	action_s {
-	char		*cmds[STD_MAX];
-	uint64_t	sz;
-}				action_t;
+extern clean_t		g_clean;
 
-act_res_t	action_call(action_t *action);
+void	clean_exit(char *error, int ret);
 
-#endif // ACTION_H
+#endif // CLEAN_H
