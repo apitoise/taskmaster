@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 16:30:31 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/21 19:22:45 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/24 12:31:48 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <signal.h>
 #include <limits.h>
 #include <time.h>
+#include <sys/wait.h>
 
 #define	STD_MAX	128
 

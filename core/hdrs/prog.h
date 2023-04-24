@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 18:06:30 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/24 11:02:00 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/24 12:39:33 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@ void	clean_exit(char *error, int ret);
 typedef struct		proc_s {
 	pid_t			pid;
 	time_t			timestamp;
+	int				status;
 }					proc_t;
 
 typedef struct		prog_s {
