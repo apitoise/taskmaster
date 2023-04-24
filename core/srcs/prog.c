@@ -182,7 +182,7 @@ int			prog_run(prog_t *prog) {
 				|| str_split(prog->cmd, args, STD_MAX)
 				|| execve(prog->cmd, args, (char **)prog->env->data)) {
 				sprintf(buff, "Can't run %s", prog->name);
-//				clean_exit(buff, 1); // exit code number ?
+				clean_exit(buff, 1); // exit code number ?
 			}
 		}
 	}

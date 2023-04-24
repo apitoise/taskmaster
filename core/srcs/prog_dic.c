@@ -39,7 +39,7 @@ void		prog_dic_free(prog_dic_t *prog_dic) {
 	uint64_t		i;
 
 	for (i = 0; i < prog_dic->keys->sz; ++i)
-		prog_free((prog_t *)&prog_dic->values->data[i]);
+		prog_free((prog_t *)prog_dic->values->data[i]);
 	dict_free(prog_dic);
 }
 

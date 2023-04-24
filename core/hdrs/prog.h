@@ -14,7 +14,8 @@
 #define PROG_H
 
 #include "unwrap.h"
-//#include "clean.h"
+
+void	clean_exit(char *error, int ret);
 
 typedef struct		proc_s {
 	pid_t			pid;
