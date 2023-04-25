@@ -24,5 +24,6 @@ typedef struct		clean_s {
 extern clean_t		g_clean;
 
 void	clean_exit(char *error, int ret);
+void	clean_exit_child(char *error, int ret);
 
 #endif // CLEAN_H

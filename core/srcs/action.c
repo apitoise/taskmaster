@@ -13,7 +13,9 @@
 #include "../hdrs/action.h"
 
 int		action_status(action_t *action) {
-	printf("%s", action->cmds[0]);
+	(void)action;
+	prog_dic_update(g_clean.prog_dic);
+	prog_dic_status(g_clean.prog_dic);
 	return (0);
 }
 

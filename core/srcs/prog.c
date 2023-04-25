@@ -162,7 +162,32 @@ static int	str_split(char *str, char **res, uint64_t n_res) {
 	return (0);
 }
 
-int			prog_update(prog_t *prog) {
+int				prog_update(prog_t *prog) {
+	uint64_t		i;
+	char			path[STD_MAX];
+	proc_t			*proc;
+	int				ret, status;
+
+	for (i = 0; i < prog->procs->sz; ++i) {
+		proc = prog->procs->data[i];
+		if (proc->pid) {
+			sprintf(path, "/proc/%d/status", proc->pid);
+			if (!access(path, F_OK)) { // if exists
+				if ((ret = waitpid(proc->pid, &status, WNOHANG)) < 0) {
+					printf("%s: zut\n", prog->name);
+					return (-1);
+				}
+				if (access(path, F_OK)) { // if not exists
+					proc->pid = 0;
+					proc->status = status;
+				}
+			}
+		}
+	}
+	return (0);
+}
+
+/*int			prog_update(prog_t *prog) {
 	uint64_t		i;
 	int				ret, status;
 	proc_t			*proc;
@@ -178,7 +203,7 @@ int			prog_update(prog_t *prog) {
 		}
 	}
 	return (0);
-}
+}*/
 
 int			prog_run(prog_t *prog) {
 	uint64_t	i;
@@ -204,7 +229,7 @@ int			prog_run(prog_t *prog) {
 				|| str_split(prog->cmd, args, STD_MAX)
 				|| execvpe(prog->cmd, args, (char **)prog->env->data)) {
 				sprintf(buff, "Can't run %s", prog->name);
-				clean_exit(buff, 1); // exit code number ?
+				clean_exit_child(buff, 1); // exit code number ?
 			}
 		}
 	}
@@ -222,4 +247,31 @@ int			prog_kill(prog_t *prog, int signal) {
 			ret = -1;
 	}
 	return (ret);
+}
+
+int			prog_status(prog_t *prog) {
+	uint64_t	i, started = 0, starting = 0, stopped = 0, failed = 0;
+	time_t		timer;
+	proc_t		*proc;
+
+	printf("%s:\n", prog->name);
+	for (i = 0; i < prog->procs->sz; ++i) {
+		proc = (proc_t *)prog->procs->data[i];
+		if (!proc->pid) {
+			++stopped;
+			continue ;
+		}
+		if (time(&timer) == -1)
+			return (-1);
+		if ((uint64_t)(timer) >= prog->starttime + proc->timestamp)
+			++started;
+		else
+			++starting;
+	}
+	if (prog->numprocs == stopped + failed || !prog->procs->sz)
+		printf("Stopped (%lu failed)\n", failed);
+	else
+		printf("Running %lu/%lu (%lu starting, %lu stopped, %lu failed)\n",
+			started, prog->numprocs, starting, stopped, failed);
+	return (0);
 }

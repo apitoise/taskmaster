@@ -14,12 +14,14 @@
 
 clean_t		g_clean = { 0 };
 
-void	clean_exit(char *error, int ret) {
+static void	clean_fact(char *error, int ret, int is_child) {
 	if (error)
 		fprintf(stderr, "Error: %s\n", error);
 	if (g_clean.prog_dic) {
-		prog_dic_update(g_clean.prog_dic);
-		prog_dic_kill(g_clean.prog_dic, SIGKILL);
+		if (!is_child) {
+			prog_dic_update(g_clean.prog_dic);
+			prog_dic_kill(g_clean.prog_dic, SIGKILL);
+		}
 		prog_dic_free(g_clean.prog_dic);
 	}
 	if (g_clean.config)
@@ -28,3 +30,13 @@ void	clean_exit(char *error, int ret) {
 		prompt_free(g_clean.prompt);
 	exit(ret);
 }
+
+void	clean_exit_child(char *error, int ret) {
+	clean_fact(error, ret, 1);
+}
+
+void	clean_exit(char *error, int ret) {
+	clean_fact(error, ret, 0);
+}
+
+

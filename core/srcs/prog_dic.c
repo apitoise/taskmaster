@@ -79,3 +79,13 @@ int			prog_dic_kill(prog_dic_t *prog_dic, int signal) {
 			ret = -1;
 	return (ret);
 }
+
+int			prog_dic_status(prog_dic_t *prog_dic) {
+	uint64_t	i;
+	int			ret = 0;
+
+	for (i = 0; i < prog_dic->keys->sz; ++i)
+		if (prog_status((prog_t *)prog_dic->values->data[i]))
+			ret = -1;
+	return (ret);
+}

@@ -16,6 +16,7 @@
 #include "unwrap.h"
 
 void	clean_exit(char *error, int ret);
+void	clean_exit_child(char *error, int ret);
 
 typedef struct		proc_s {
 	pid_t			pid;
@@ -55,5 +56,6 @@ void		prog_print(prog_t *prog);
 int			prog_run(prog_t *prog);
 int			prog_update(prog_t *prog);
 int			prog_kill(prog_t *prog, int signal);
+int			prog_status(prog_t *prog);
 
 #endif // PROG_H

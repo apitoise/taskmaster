@@ -18,6 +18,9 @@ Stopped
 Failed
 */
 
+
+// TO DO CHECKING TERM RESTORATION
+
 typedef enum		restart_pol_e {
 	RP_ALWAYS,
 	RP_NEVER,
