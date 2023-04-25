@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 18:02:50 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/23 09:39:51 by herrfalco        ###   ########.fr       */
+/*   Updated: 2023/04/25 08:27:51 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,5 +58,14 @@ int			prog_dic_run(prog_dic_t *prog_dic, char *name) {
 				return (-1);
 		}
 	}
+	return (0);
+}
+
+int			prog_dic_update(prog_dic_t *prog_dic) {
+	uint64_t		i;	
+
+	for (i = 0; i < prog_dic->keys->sz; ++i)
+		if (prog_update(prog_dic->values->data[i]))
+			return (-1);
 	return (0);
 }

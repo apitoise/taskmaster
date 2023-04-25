@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/22 20:47:06 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/24 11:12:37 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/25 08:44:39 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,9 +42,11 @@ int			main(int ac, char **av) {
 		if (prompt_query(g_clean.prompt, &cmd))
 			clean_exit("Can't access terminal", 6);
 		action.sz = cmd_split(&cmd, action.cmds, 2);
-		if (action_call(&action) == AR_STOP)
-			break;
-		printf("\n");
+		if (!action.sz)
+			continue;
+		if (action_call(&action))
+			fprintf(stderr, "%s: command failed", *action.cmds);
+//		printf("\n");
 	}
 	clean_exit(NULL, 0);
 }

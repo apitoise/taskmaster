@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 16:39:45 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/24 11:12:01 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/25 08:38:18 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,17 +15,15 @@
 
 #include "clean.h"
 
-typedef enum	act_res_e {
-	AR_CONT,
-	AR_STOP,
-	AR_ERR,
-}				act_res_t;
+#define ACT_NB		6
 
 typedef struct	action_s {
 	char		*cmds[STD_MAX];
 	uint64_t	sz;
 }				action_t;
 
-act_res_t	action_call(action_t *action);
+typedef int		(*action_fn_t)(action_t *action);
+
+int			action_call(action_t *action);
 
 #endif // ACTION_H

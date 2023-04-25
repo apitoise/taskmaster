@@ -6,12 +6,14 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 16:30:31 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/24 12:31:48 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/25 08:51:20 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef INCLUDES_H
 #define INCLUDES_H
+
+#define _GNU_SOURCE
 
 #include "../../shell_prompt/hdrs/prompt.h"
 #include "../../config/config.h"

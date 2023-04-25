@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 18:00:57 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/24 12:40:07 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/25 08:50:15 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -169,13 +169,15 @@ int			prog_update(prog_t *prog) {
 
 	for (i = 0; i < prog->procs->sz; ++i) {
 		proc = prog->procs->data[i];
-		if ((ret = waitpid(proc->pid, &status, WNOHANG))) {
+		if (proc->pid
+			&& (ret = waitpid(proc->pid, &status, WNOHANG))) {
 			if (ret < 0)
 				return (-1);
 			proc->pid = 0;
 			proc->status = status;
 		}
 	}
+	return (0);
 }
 
 int			prog_run(prog_t *prog) {
@@ -185,18 +187,22 @@ int			prog_run(prog_t *prog) {
 	proc_t		*new_proc;
 
 	for (i = 0; i < prog->numprocs; ++i) {
-		if (!(new_proc = malloc(sizeof(proc_t)))
-			|| vec_push_back(prog->procs, new_proc)
-			|| time(&new_proc->timestamp) == -1
-			|| (new_proc->pid = fork()) == -1) {
-			if (new_proc)
-				free(new_proc);
+		if (!(new_proc = malloc(sizeof(proc_t))))
+			return (-1);
+		if (time(&new_proc->timestamp) == -1
+			|| vec_push_back(prog->procs, new_proc)) {
+			free(new_proc);
+			return (-1);
+		}
+		if ((new_proc->pid = fork()) == -1) {
+			vec_pop_back(prog->procs, NULL);
+			free(new_proc);
 			return (-1);
 		} else if (!new_proc->pid) {
 			if (io_redirect(STDOUT_FILENO, prog->std_out)
 				|| io_redirect(STDERR_FILENO, prog->std_err)
 				|| str_split(prog->cmd, args, STD_MAX)
-				|| execve(prog->cmd, args, (char **)prog->env->data)) {
+				|| execvpe(prog->cmd, args, (char **)prog->env->data)) {
 				sprintf(buff, "Can't run %s", prog->name);
 				clean_exit(buff, 1); // exit code number ?
 			}

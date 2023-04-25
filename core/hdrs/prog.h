@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 18:06:30 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/24 12:39:33 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/25 08:12:17 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,5 +53,6 @@ prog_t		*prog_new(char *name, dict_t *opts);
 void		prog_free(prog_t *prog);
 void		prog_print(prog_t *prog);
 int			prog_run(prog_t *prog);
+int			prog_update(prog_t *prog);
 
 #endif // PROG_H
