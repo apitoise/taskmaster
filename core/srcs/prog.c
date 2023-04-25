@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 18:00:57 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/24 11:01:42 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/24 12:40:07 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -160,6 +160,22 @@ static int	str_split(char *str, char **res, uint64_t n_res) {
 	str[i] = '\0';
 	res[j] = NULL;
 	return (0);
+}
+
+int			prog_update(prog_t *prog) {
+	uint64_t		i;
+	int				ret, status;
+	proc_t			*proc;
+
+	for (i = 0; i < prog->procs->sz; ++i) {
+		proc = prog->procs->data[i];
+		if ((ret = waitpid(proc->pid, &status, WNOHANG))) {
+			if (ret < 0)
+				return (-1);
+			proc->pid = 0;
+			proc->status = status;
+		}
+	}
 }
 
 int			prog_run(prog_t *prog) {
