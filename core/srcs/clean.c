@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/24 10:03:51 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/24 12:17:38 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/25 09:19:51 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,8 @@ void	clean_exit(char *error, int ret) {
 	if (error)
 		fprintf(stderr, "Error: %s\n", error);
 	if (g_clean.prog_dic) {
-		kill_prog_dic(g_clean.prog_dic, SIGKILL);
+		prog_dic_update(g_clean.prog_dic);
+		prog_dic_kill(g_clean.prog_dic, SIGKILL);
 		prog_dic_free(g_clean.prog_dic);
 	}
 	if (g_clean.config)

@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/24 10:04:27 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/24 11:26:34 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/25 09:23:27 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,6 @@
 #define CLEAN_H
 
 #include "prog_dic.h"
-#include "kill.h"
 
 typedef struct		clean_s {
 	prog_dic_t		*prog_dic;

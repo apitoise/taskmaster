@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 18:00:57 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/25 08:50:15 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/25 09:20:51 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -209,4 +209,17 @@ int			prog_run(prog_t *prog) {
 		}
 	}
 	return (0);
+}
+
+int			prog_kill(prog_t *prog, int signal) {
+	uint64_t	i;
+	int			ret = 0;
+	proc_t		*proc;
+
+	for (i = 0; i < prog->procs->sz; ++i) {
+		proc = (proc_t *)prog->procs->data[i];
+		if (proc->pid && kill(proc->pid, signal))
+			ret = -1;
+	}
+	return (ret);
 }
