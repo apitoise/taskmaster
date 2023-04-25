@@ -10,6 +10,7 @@ SRCS	=	shell_prompt/srcs/cmd.c \
 		core/srcs/prog.c \
 		core/srcs/prog_dic.c \
 		core/srcs/unwrap.c \
+		core/srcs/kill.c \
 		config/config.c \
 		vector/vector.c \
 		dict/dict.c

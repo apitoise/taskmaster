@@ -14,6 +14,7 @@
 #define CLEAN_H
 
 #include "prog_dic.h"
+#include "kill.h"
 
 typedef struct		clean_s {
 	prog_dic_t		*prog_dic;
