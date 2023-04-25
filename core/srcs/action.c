@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 16:31:29 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/25 09:14:25 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/25 12:55:25 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,15 +14,14 @@
 
 int		action_status(action_t *action) {
 	(void)action;
-	prog_dic_update(g_clean.prog_dic);
-	prog_dic_status(g_clean.prog_dic);
-	return (0);
+	return (prog_dic_update(g_clean.prog_dic)
+		|| prog_dic_status(g_clean.prog_dic) ? -1 : 0);
 }
 
 int		action_start(action_t *action) {
-	if (action->sz == 1)
-		fprintf(stderr, "start [process_name]");
-	return (0);
+	if (action->sz != 2)
+		return (-1);
+	return (prog_dic_run(g_clean.prog_dic, action->cmds[1]));
 }
 
 int		action_stop(action_t *action) {
@@ -31,8 +30,16 @@ int		action_stop(action_t *action) {
 }
 
 int		action_restart(action_t *action) {
-	printf("%s", action->cmds[1]);
-	return (0);
+	prog_t		*prog;
+	
+	if (action->sz != 2
+		|| dict_get(g_clean.prog_dic, action->cmds[1],
+		(void **)&prog)
+		|| prog_kill(prog, SIGKILL) //need to be gentle
+		|| prog_update(prog)) // need to suppress killed process...
+		return (-1);
+	prog_clean_procs(prog);
+	return (prog_run(prog));
 }
 
 int		action_reload(action_t *action) {
@@ -41,8 +48,7 @@ int		action_reload(action_t *action) {
 }
 
 int		action_exit(action_t *action) {
-	printf("%s", action->cmds[0]);
-
+	(void)action;
 	clean_exit(NULL, 0);
 	return (0);
 }

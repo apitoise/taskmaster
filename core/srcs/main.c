@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/22 20:47:06 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/25 08:44:39 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/25 12:27:16 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,10 @@ Failed
 */
 
 
-// TO DO CHECKING TERM RESTORATION
+// TODO
+// TERM RESTORATION
+// function error handling
+// global accessors
 
 typedef enum		restart_pol_e {
 	RP_ALWAYS,

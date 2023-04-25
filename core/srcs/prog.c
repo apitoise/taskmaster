@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 18:00:57 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/25 09:20:51 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/25 12:29:23 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -187,23 +187,13 @@ int				prog_update(prog_t *prog) {
 	return (0);
 }
 
-/*int			prog_update(prog_t *prog) {
-	uint64_t		i;
-	int				ret, status;
-	proc_t			*proc;
+void		prog_clean_procs(prog_t *prog) {
+	uint64_t	i;
 
-	for (i = 0; i < prog->procs->sz; ++i) {
-		proc = prog->procs->data[i];
-		if (proc->pid
-			&& (ret = waitpid(proc->pid, &status, WNOHANG))) {
-			if (ret < 0)
-				return (-1);
-			proc->pid = 0;
-			proc->status = status;
-		}
-	}
-	return (0);
-}*/
+	for (i = 0; i < prog->procs->sz; ++i)
+		free(prog->procs->data[i]);
+	prog->procs->sz = 0;
+}
 
 int			prog_run(prog_t *prog) {
 	uint64_t	i;
@@ -250,7 +240,9 @@ int			prog_kill(prog_t *prog, int signal) {
 }
 
 int			prog_status(prog_t *prog) {
-	uint64_t	i, started = 0, starting = 0, stopped = 0, failed = 0;
+	uint64_t	i, started = 0,
+				succeed = 0,
+				failed = 0;
 	time_t		timer;
 	proc_t		*proc;
 
@@ -258,20 +250,20 @@ int			prog_status(prog_t *prog) {
 	for (i = 0; i < prog->procs->sz; ++i) {
 		proc = (proc_t *)prog->procs->data[i];
 		if (!proc->pid) {
-			++stopped;
+			++succeed;
 			continue ;
 		}
 		if (time(&timer) == -1)
 			return (-1);
-		if ((uint64_t)(timer) >= prog->starttime + proc->timestamp)
+		if ((uint64_t)(timer)
+			>= prog->starttime + proc->timestamp)
 			++started;
-		else
-			++starting;
 	}
-	if (prog->numprocs == stopped + failed || !prog->procs->sz)
-		printf("Stopped (%lu failed)\n", failed);
+	if (prog->numprocs == succeed + failed || !prog->procs->sz)
+		printf("Stopped (%lu succeed, %lu failed)\n",
+			succeed, failed);
 	else
-		printf("Running %lu/%lu (%lu starting, %lu stopped, %lu failed)\n",
-			started, prog->numprocs, starting, stopped, failed);
+		printf("Running %lu/%lu (%lu succeed, %lu failed)\n",
+			started, prog->numprocs, succeed, failed);
 	return (0);
 }
