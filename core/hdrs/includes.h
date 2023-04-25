@@ -18,6 +18,7 @@
 #include <signal.h>
 #include <limits.h>
 #include <time.h>
+#include <sys/types.h>
 
 #define	STD_MAX	128
 

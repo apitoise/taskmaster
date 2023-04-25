@@ -17,8 +17,10 @@ clean_t		g_clean = { 0 };
 void	clean_exit(char *error, int ret) {
 	if (error)
 		fprintf(stderr, "Error: %s\n", error);
-	if (g_clean.prog_dic)
+	if (g_clean.prog_dic) {
+		kill_prog_dic(g_clean.prog_dic, SIGKILL);
 		prog_dic_free(g_clean.prog_dic);
+	}
 	if (g_clean.config)
 		config_free(g_clean.config);
 	if (g_clean.prompt)
