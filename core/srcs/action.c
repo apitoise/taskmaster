@@ -42,6 +42,7 @@ int		action_start(action_t *action) {
 	for (i = 0; i < prog->procs->sz; ++i)
 		if (((proc_t *)prog->procs->data[i])->pid)
 			return (-1);
+	prog_clean_procs(prog);
 	return (prog_run(prog));
 }
 
