@@ -53,12 +53,23 @@ int		action_restart(action_t *action) {
 }
 
 int		action_reload(action_t *action) {
-	conf_t		*new_conf;
+	glob_t		new = { .config = 0,
+						.prog_dic = 0,
+						.prompt = glob.prompt };
 
-	return (action->sz != 2
-		|| !(new_conf = config_new(action->cmds[1]))
-		|| prog_dic_reload(glob.prog_dic, new_conf)
-		? -1 : 0);
+	if (action->sz != 1
+		|| !(new.config = config_new(glob.config_path))
+		|| !(new.prog_dic = prog_dic_reload(glob.prog_dic, glob.config))) {
+		if (new.config)
+			config_free(new.config);
+		if (new.prog_dic)
+			prog_dic_free(new.prog_dic);
+		return (-1);
+	}
+	prog_dic_free(glob.prog_dic);
+	config_free(glob.config);
+	glob = new;
+	return (prog_dic_run(glob.prog_dic, NULL));
 }
 
 int		action_exit(action_t *action) {

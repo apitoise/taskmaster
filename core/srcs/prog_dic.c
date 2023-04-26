@@ -54,7 +54,9 @@ int			prog_dic_run(prog_dic_t *prog_dic, char *name) {
 	} else {
 		for (i = 0; i < prog_dic->keys->sz; ++i) {
 			prog = prog_dic->values->data[i];
-			if (prog->autostart && prog_run(prog))
+			if (!prog->procs->sz
+				&& prog->autostart
+				&& prog_run(prog))
 				return (-1);
 		}
 	}
@@ -90,19 +92,24 @@ int			prog_dic_status(prog_dic_t *prog_dic) {
 	return (ret);
 }
 
-int			prog_dic_reload(prog_dic_t *prog_dic, conf_t *conf) {
+prog_dic_t	*prog_dic_reload(prog_dic_t *prog_dic, conf_t *conf) {
 	prog_dic_t	*new;
 	uint64_t	i;
 	prog_t		*new_prog, *old_prog;
 
 	if (!(new = prog_dic_new(conf)))
-		return (-1);
+		return (NULL);
 	for (i = 0; i < prog_dic->keys->sz; ++i) {
-		old_prog = prog_dic->keys->data[i];
-		if (dict_get(new, prog_dic->keys->data[i], (void **)&new_prog)) {
-			(void)old_prog;
-//			if (prog_kill(prog_di
-		}	
+		old_prog = prog_dic->values->data[i];
+		if (dict_get(new, old_prog->name, (void **)&new_prog)
+			|| prog_cmp(new_prog, old_prog)) {
+			if (prog_kill(old_prog, SIGINT)
+				|| prog_update(old_prog)) {
+				prog_dic_free(new);
+				return (NULL);
+			}
+			prog_clean_procs(old_prog);
+		}
 	}
-	return (0);
+	return (new);
 }

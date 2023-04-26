@@ -38,7 +38,8 @@ int			main(int ac, char **av) {
 
 	if (ac != 2)
 		clean_exit("Wrong number of arguments: ./taskmaster [conf file]", 1);
-	if (!(glob.config = config_new(av[1])))
+	glob.config_path = av[1];
+	if (!(glob.config = config_new(glob.config_path)))
 		clean_exit("Can't load config file", 2);
 	if (!(glob.prog_dic = prog_dic_new(glob.config)))
 		clean_exit("Can't init program's dictionnary", 3);

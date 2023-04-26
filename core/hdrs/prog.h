@@ -60,5 +60,6 @@ int			prog_run(prog_t *prog);
 int			prog_update(prog_t *prog);
 int			prog_kill(prog_t *prog, int signal);
 int			prog_status(prog_t *prog);
+int			prog_cmp(prog_t *p1, prog_t *p2);
 
 #endif // PROG_H
