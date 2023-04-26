@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 18:00:57 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/25 12:29:23 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/26 10:14:11 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,8 +52,8 @@ prog_t			*prog_new(char *name, dict_t *opts) {
 		|| dic_get_unw(opts, "stopsignal", (void **)&str, "INT", DT_STR)
 		|| (new->stopsignal = map_str(g_map.sigs_v, g_map.sigs_s, str, 7)) == U_ERROR
 		|| dic_get_unw(opts, "stoptime", (void **)&new->stoptime, (void *)10, DT_UNB)
-		|| dic_get_unw(opts, "stdout", (void **)&new->std_out, "", DT_STR)
-		|| dic_get_unw(opts, "stderr", (void **)&new->std_err, "", DT_STR)
+		|| dic_get_unw(opts, "stdout", (void **)&new->std_out, "./log_out", DT_STR)
+		|| dic_get_unw(opts, "stderr", (void **)&new->std_err, "./log_err", DT_STR)
 		|| dic_get_unw(opts, "env", (void **)&env, NULL, DT_VEC)
 		|| dic_get_unw(opts, "workingdir", (void **)&new->workingdir, "", DT_STR)
 		|| dic_get_unw(opts, "umask", (void **)&new->umask, NULL, DT_UNB)
@@ -173,10 +173,8 @@ int				prog_update(prog_t *prog) {
 		if (proc->pid) {
 			sprintf(path, "/proc/%d/status", proc->pid);
 			if (!access(path, F_OK)) { // if exists
-				if ((ret = waitpid(proc->pid, &status, WNOHANG)) < 0) {
-					printf("%s: zut\n", prog->name);
+				if ((ret = waitpid(proc->pid, &status, WNOHANG)) < 0)
 					return (-1);
-				}
 				if (access(path, F_OK)) { // if not exists
 					proc->pid = 0;
 					proc->status = status;
@@ -246,7 +244,7 @@ int			prog_status(prog_t *prog) {
 	time_t		timer;
 	proc_t		*proc;
 
-	printf("%s:\n", prog->name);
+	printf("%-10s: ", prog->name);
 	for (i = 0; i < prog->procs->sz; ++i) {
 		proc = (proc_t *)prog->procs->data[i];
 		if (!proc->pid) {
@@ -259,8 +257,10 @@ int			prog_status(prog_t *prog) {
 			>= prog->starttime + proc->timestamp)
 			++started;
 	}
-	if (prog->numprocs == succeed + failed || !prog->procs->sz)
-		printf("Stopped (%lu succeed, %lu failed)\n",
+	if (!prog->procs->sz)
+		printf("Stopped\n");
+	else if (prog->numprocs == succeed + failed)
+		printf("Terminated (%lu succeed, %lu failed)\n",
 			succeed, failed);
 	else
 		printf("Running %lu/%lu (%lu succeed, %lu failed)\n",

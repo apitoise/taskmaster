@@ -13,6 +13,8 @@ SRCS	=	shell_prompt/srcs/cmd.c \
 		config/config.c \
 		vector/vector.c \
 		dict/dict.c
+LOGS	=	./log_out \
+		./log_err
 OBJS	=	$(SRCS:.c=.o)
 CC	=	gcc
 CFLAGS	=	-Wall -Wextra -Werror
@@ -26,7 +28,7 @@ $(NAME)	:	$(OBJS)
 		$(CC) $(CFLAGS) -c $< -o $@
 
 clean	:
-		$(RM) $(OBJS)
+		$(RM) $(OBJS) $(LOGS)
 
 fclean	:	clean
 		rm -rf $(NAME)

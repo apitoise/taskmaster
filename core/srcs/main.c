@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/22 20:47:06 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/25 12:27:16 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/26 10:16:16 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,7 +51,7 @@ int			main(int ac, char **av) {
 		if (!action.sz)
 			continue;
 		if (action_call(&action))
-			fprintf(stderr, "%s: command failed", *action.cmds);
+			fprintf(stderr, "%s command failed\n", *action.cmds);
 //		printf("\n");
 	}
 	clean_exit(NULL, 0);
