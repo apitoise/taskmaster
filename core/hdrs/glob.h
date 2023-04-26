@@ -9,6 +9,6 @@ typedef struct		glob_s {
 	prompt_t		*prompt;
 }					glob_t;
 
-extern glob_t		g_glob;
+extern glob_t		glob;
 
 #endif // GLOB_H

@@ -6,12 +6,11 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/22 20:47:06 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/26 10:16:16 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/26 12:50:39 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../hdrs/action.h"
-#include "../hdrs/glob.h"
 
 /*
 Running x/y (x Failed, x Stopped)
@@ -39,16 +38,16 @@ int			main(int ac, char **av) {
 
 	if (ac != 2)
 		clean_exit("Wrong number of arguments: ./taskmaster [conf file]", 1);
-	if (!(g_clean.config = config_new(av[1])))
+	if (!(glob.config = config_new(av[1])))
 		clean_exit("Can't load config file", 2);
-	if (!(g_clean.prog_dic = prog_dic_new(g_clean.config)))
+	if (!(glob.prog_dic = prog_dic_new(glob.config)))
 		clean_exit("Can't init program's dictionnary", 3);
-	if (prog_dic_run(g_clean.prog_dic, NULL) == -1)
+	if (prog_dic_run(glob.prog_dic, NULL) == -1)
 		clean_exit("Can't fork current program", 4);
-	if (!(g_clean.prompt = prompt_new("> ")))
+	if (!(glob.prompt = prompt_new("> ")))
 		clean_exit("Can init prompt", 5);
 	while (42) {
-		if (prompt_query(g_clean.prompt, &cmd))
+		if (prompt_query(glob.prompt, &cmd))
 			clean_exit("Can't access terminal", 6);
 		action.sz = cmd_split(&cmd, action.cmds, 2);
 		if (!action.sz)

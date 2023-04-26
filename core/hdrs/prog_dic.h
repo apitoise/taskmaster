@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/22 14:07:14 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/25 09:22:29 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/26 12:58:43 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,6 @@ int				prog_dic_run(prog_dic_t *prog_dic, char *name);
 int				prog_dic_update(prog_dic_t *prog_dic);
 int				prog_dic_kill(prog_dic_t *prog_dic, int signal);
 int				prog_dic_status(prog_dic_t *prog_dic);
-int				prog_dic_reload(conf_t *conf);
+int				prog_dic_reload(prog_dic_t *prog_dic, conf_t *conf);
 
 #endif //PROG_DIC_H

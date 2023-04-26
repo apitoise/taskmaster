@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 16:39:45 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/25 08:38:18 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/26 12:50:15 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,6 @@
 #define ACTION_H
 
 #include "clean.h"
-#include "../../config/config.h"
 
 #define ACT_NB		6
 

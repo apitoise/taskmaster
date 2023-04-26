@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 16:31:29 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/26 10:05:31 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/26 12:59:33 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,7 @@ int		action_reload(action_t *action) {
 
 	return (action->sz != 2
 		|| !(new_conf = config_new(action->cmds[1]))
-		|| prog_dic_reload(new_conf)
+		|| prog_dic_reload(glob.prog_dic, new_conf)
 		? -1 : 0);
 }
 
