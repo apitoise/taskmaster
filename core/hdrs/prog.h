@@ -18,6 +18,8 @@
 void	clean_exit(char *error, int ret);
 void	clean_exit_child(char *error, int ret);
 
+typedef int			(*cmp_fn_t)(void *, void *);
+
 typedef struct		proc_s {
 	pid_t			pid;
 	time_t			timestamp;

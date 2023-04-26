@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "../hdrs/action.h"
+#include "../hdrs/glob.h"
 
 /*
 Running x/y (x Failed, x Stopped)
@@ -29,6 +30,8 @@ typedef enum		restart_pol_e {
 	RP_NEVER,
 	RP_UNEXP,
 }					restart_pol_t;
+
+glob_t		glob = { 0 };
 
 int			main(int ac, char **av) {
 	cmd_t			cmd;

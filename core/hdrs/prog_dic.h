@@ -23,5 +23,6 @@ int				prog_dic_run(prog_dic_t *prog_dic, char *name);
 int				prog_dic_update(prog_dic_t *prog_dic);
 int				prog_dic_kill(prog_dic_t *prog_dic, int signal);
 int				prog_dic_status(prog_dic_t *prog_dic);
+int				prog_dic_reload(conf_t *conf);
 
 #endif //PROG_DIC_H

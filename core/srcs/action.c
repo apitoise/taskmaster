@@ -14,15 +14,15 @@
 
 int		action_status(action_t *action) {
 	(void)action;
-	return (prog_dic_update(g_clean.prog_dic)
-		|| prog_dic_status(g_clean.prog_dic) ? -1 : 0);
+	return (prog_dic_update(glob.prog_dic)
+		|| prog_dic_status(glob.prog_dic) ? -1 : 0);
 }
 
 int		action_stop(action_t *action) {
 	prog_t		*prog;
 	
 	if (action->sz != 2
-		|| dict_get(g_clean.prog_dic, action->cmds[1],
+		|| dict_get(glob.prog_dic, action->cmds[1],
 		(void **)&prog)
 		|| prog_kill(prog, SIGKILL) //need to be gentle
 		|| prog_update(prog))
@@ -36,7 +36,7 @@ int		action_start(action_t *action) {
 	uint64_t	i;
 	
 	if (action->sz != 2
-		|| dict_get(g_clean.prog_dic, action->cmds[1],
+		|| dict_get(glob.prog_dic, action->cmds[1],
 		(void **)&prog))
 		return (-1);
 	for (i = 0; i < prog->procs->sz; ++i)
@@ -53,8 +53,12 @@ int		action_restart(action_t *action) {
 }
 
 int		action_reload(action_t *action) {
-	printf("%s", action->cmds[1]);
-	return (0);
+	conf_t		*new_conf;
+
+	return (action->sz != 2
+		|| !(new_conf = config_new(action->cmds[1]))
+		|| prog_dic_reload(new_conf)
+		? -1 : 0);
 }
 
 int		action_exit(action_t *action) {

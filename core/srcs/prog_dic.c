@@ -89,3 +89,19 @@ int			prog_dic_status(prog_dic_t *prog_dic) {
 			ret = -1;
 	return (ret);
 }
+/*
+int			prog_dic_reload(conf_t *conf) {
+	prog_dic_t	*new;
+	uint64_t	i;
+	prog_t		*new_prog, *old_prog;
+
+	if (!(new = prog_dic_new(conf)))
+		return (-1);
+	for (i = 0; i < g_clean.prog_dic->keys->sz; ++i) {
+		old_prog = g_clean.prog_dic->keys->data[i];
+		if (dict_get(new, g_clean.prog_dic->keys->data[i], &new_prog)) {
+			if (prog_kill(g_clean.prog_di
+		}	
+	}
+}
+*/

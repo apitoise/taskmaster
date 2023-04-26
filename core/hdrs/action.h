@@ -14,6 +14,7 @@
 #define ACTION_H
 
 #include "clean.h"
+#include "../../config/config.h"
 
 #define ACT_NB		6
 
