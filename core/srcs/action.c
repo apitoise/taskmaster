@@ -53,13 +53,11 @@ int		action_restart(action_t *action) {
 }
 
 int		action_reload(action_t *action) {
-	glob_t		new = { .config = 0,
-						.prog_dic = 0,
-						.prompt = glob.prompt };
-
+	glob_t		new = { 0 };
+	
 	if (action->sz != 1
 		|| !(new.config = config_new(glob.config_path))
-		|| !(new.prog_dic = prog_dic_reload(glob.prog_dic, glob.config))) {
+		|| !(new.prog_dic = prog_dic_reload(glob.prog_dic, new.config))) {
 		if (new.config)
 			config_free(new.config);
 		if (new.prog_dic)
@@ -68,7 +66,8 @@ int		action_reload(action_t *action) {
 	}
 	prog_dic_free(glob.prog_dic);
 	config_free(glob.config);
-	glob = new;
+	glob.config = new.config;
+	glob.prog_dic = new.prog_dic;
 	return (prog_dic_run(glob.prog_dic, NULL));
 }
 

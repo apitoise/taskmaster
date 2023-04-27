@@ -248,7 +248,7 @@ void	config_print(conf_t *conf) {
 
 void	config_free(conf_t *conf) {
 	if (conf->map.data)
-		munmap(conf->map.data, conf->map.sz);
+		free(conf->map.data);
 	if (conf->root)
 		rec_free(conf->root);
 	free(conf);
@@ -259,6 +259,7 @@ conf_t	*config_new(char *path) {
 	struct stat		stat;
 	node_getter_t	node_fn;
 	conf_t			*new = NULL;
+	void			*tmp;
 
 	if ((fd = open(path, O_RDONLY)) < 0)
 		return (NULL);
@@ -268,14 +269,23 @@ conf_t	*config_new(char *path) {
 		return (NULL);
 	}
 	bzero(new, sizeof(conf_t));
-	if ((new->map.data = mmap(NULL, stat.st_size,
-		PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0))
+	if ((tmp = mmap(NULL, stat.st_size,
+		PROT_READ, MAP_PRIVATE, fd, 0))
 		== MAP_FAILED) {
 		close(fd);
 		free(new);
 		return (NULL);
 	}
 	close(fd);
+	if (!(new->map.data = malloc(stat.st_size))) {
+		free(new);
+		munmap(tmp, stat.st_size);
+		if (new->map.data)
+			free(new->map.data);
+		return (NULL);
+	}
+	memcpy(new->map.data, tmp, stat.st_size);
+	munmap(tmp, stat.st_size);
 	new->map.sz = stat.st_size;
 	new->map.idx = 0;
 	if (!(node_fn = sel_node_getter(&new->map))

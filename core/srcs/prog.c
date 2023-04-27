@@ -217,6 +217,8 @@ int			prog_run(prog_t *prog) {
 				|| str_split(prog->cmd, args, STD_MAX)
 				|| execvpe(prog->cmd, args, (char **)prog->env->data)) {
 				sprintf(buff, "Can't run %s", prog->name);
+				fclose(stdout);
+				fclose(stdin);
 				clean_exit_child(buff, 1); // exit code number ?
 			}
 		}

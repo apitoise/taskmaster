@@ -54,8 +54,9 @@ int			prog_dic_run(prog_dic_t *prog_dic, char *name) {
 	} else {
 		for (i = 0; i < prog_dic->keys->sz; ++i) {
 			prog = prog_dic->values->data[i];
-			if (!prog->procs->sz
-				&& prog->autostart
+			if (prog->procs->sz)
+				continue ;
+			if (prog->autostart
 				&& prog_run(prog))
 				return (-1);
 		}
@@ -95,6 +96,7 @@ int			prog_dic_status(prog_dic_t *prog_dic) {
 prog_dic_t	*prog_dic_reload(prog_dic_t *prog_dic, conf_t *conf) {
 	prog_dic_t	*new;
 	uint64_t	i;
+	proc_t		*tmp;
 	prog_t		*new_prog, *old_prog;
 
 	if (!(new = prog_dic_new(conf)))
@@ -109,6 +111,16 @@ prog_dic_t	*prog_dic_reload(prog_dic_t *prog_dic, conf_t *conf) {
 				return (NULL);
 			}
 			prog_clean_procs(old_prog);
+		}
+		else {
+			while (old_prog->procs->sz) {
+				vec_pop_back(old_prog->procs, (void **)&tmp);
+				if (vec_push_back(new_prog->procs, tmp)) {
+					vec_push_back(old_prog->procs, tmp);
+					prog_dic_free(new);
+					return (NULL);
+				}
+			}
 		}
 	}
 	return (new);
