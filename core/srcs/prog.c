@@ -279,12 +279,9 @@ static int	vec_cmp(vec_t *v1, vec_t *v2, cmp_fn_t cmp_fn) {
 
 	if (v1->sz != v2->sz)
 		return (1);
-	for (i = 0; i + 1 < v1->sz; ++i) {
-		if (cmp_fn == (cmp_fn_t)strcmp)
-			printf("%lu: %s\n", v1->sz, (char *)v1->data[i]);
+	for (i = 0; i + 1 < v1->sz; ++i)
 		if (cmp_fn(v1->data[i], v2->data[i]))
 			return (1);
-	}
 	return (0);
 }
 
