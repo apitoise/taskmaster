@@ -6,7 +6,7 @@
 /*   By: herrfalco <fcadet@student.42.fr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/27 11:12:49 by herrfalco         #+#    #+#             */
-/*   Updated: 2023/04/21 16:01:20 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/27 23:35:55 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ typedef enum		dir_e {
 
 int		term_init(void);
 int		term_fini(void);
-int		term_pop(void);
+int		term_pop(void (*fn)(void), uint64_t usleep);
 int		term_push(char c);
 int		term_dim(uint64_t *row, uint64_t *col);
 int		term_get_cur(uint64_t *row, uint64_t *col);

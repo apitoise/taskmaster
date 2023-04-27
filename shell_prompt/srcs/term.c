@@ -6,7 +6,7 @@
 /*   By: herrfalco <fcadet@student.42.fr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/27 11:16:03 by herrfalco         #+#    #+#             */
-/*   Updated: 2023/04/23 09:42:10 by herrfalco        ###   ########.fr       */
+/*   Updated: 2023/04/27 23:58:13 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,11 +14,59 @@
 
 static struct termios		g_term;
 static in_buff_t			g_in_buff = { 0 };
+/*
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <termios.h>
+
+int main() {
+    // get the current terminal attributes
+    struct termios old_attr, new_attr;
+    tcgetattr(STDIN_FILENO, &old_attr);
+    
+    // set the new attributes to the current attributes
+    new_attr = old_attr;
+    
+    // set the input mode to non-blocking
+    new_attr.c_cc[VMIN] = 0;
+    new_attr.c_cc[VTIME] = 0;
+    new_attr.c_lflag &= ~(ICANON | ECHO);
+    new_attr.c_cflag |= CLOCAL | CREAD;
+    new_attr.c_cflag &= ~CRTSCTS;
+    new_attr.c_iflag &= ~(IXON | IXOFF | IXANY);
+    new_attr.c_iflag |= IGNBRK;
+    new_attr.c_oflag &= ~OPOST;
+    new_attr.c_cc[VEOL] = 1;
+    
+    // apply the new attributes
+    tcsetattr(STDIN_FILENO, TCSANOW | TCSAFLUSH, &new_attr);
+    
+    while (1) {
+        // read input from stdin
+        int c = getchar();
+        if (c != EOF) {
+            printf("You typed: %c\n", c);
+        } else {
+            printf("No input available\n");
+        }
+    }
+    
+    // restore the old terminal attributes
+    tcsetattr(STDIN_FILENO, TCSANOW, &old_attr);
+    
+    return 0;
+}
+*/
 
 int		term_init(void) {
 	struct termios	new_term;
+	int				std_flags;
 
-    if (tcgetattr(STDIN_FILENO, &g_term))
+    if (tcgetattr(STDIN_FILENO, &g_term)
+		|| (std_flags = fcntl(STDIN_FILENO, F_GETFL)) == -1
+		|| fcntl(STDIN_FILENO, F_SETFL,
+			std_flags | O_NONBLOCK) == -1)
 		return (-1);
 	new_term = g_term;
 	new_term.c_lflag &= ~(ICANON | ECHO);
@@ -31,12 +79,27 @@ int		 term_fini(void) {
 	return (tcsetattr(STDIN_FILENO, TCSANOW, &g_term));
 }
 
-int		term_pop(void) {
-	int		c;
+int		term_pop(void (*fn)(void), uint64_t usleep) {
+	int				c;
+	fd_set			set;
+	struct timeval	timeout = {
+		.tv_sec = 0,
+		.tv_usec = usleep,
+	};
 
-	return ((c = in_buff_pop(&g_in_buff)) >= 0
-		|| (c = getchar()) != EOF
-		? c : -1);
+	while (42) {
+		if ((c = in_buff_pop(&g_in_buff)) >= 0)
+			return (c);
+		FD_ZERO(&set);
+		FD_SET(STDIN_FILENO, &set);
+		if (select(STDIN_FILENO + 1, &set, NULL, NULL, &timeout) == -1)
+			return (-1);
+		if (FD_ISSET(STDIN_FILENO, &set))
+			return ((c = getchar()) != EOF ? c : -1);
+		if (fn)
+			fn();
+	}
+	return (-1);
 }
 
 int		term_push(char c) {

@@ -6,7 +6,7 @@
 /*   By: herrfalco <fcadet@student.42.fr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/27 11:58:05 by herrfalco         #+#    #+#             */
-/*   Updated: 2023/04/24 09:56:27 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/27 23:38:48 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,11 +45,11 @@ static int		handle_esc(prompt_t *prompt, char *buff) {
 	cmd_t		*cmd;
 
 	buff[0] = '^';
-	if ((ret = term_pop()) < 0)
+	if ((ret = term_pop(NULL, 0)) < 0)
 		return (-1);
 	if ((buff[1] = ret) != '[')
 		return (0);
-	if ((ret = term_pop()) < 0)
+	if ((ret = term_pop(NULL, 0)) < 0)
 		return (-1);
 	switch ((buff[2] = ret)) {
 		case 'A':
@@ -83,7 +83,7 @@ static int		handle_esc(prompt_t *prompt, char *buff) {
 			prompt->cur_pos = prompt->cur_cmd.sz;
 			return (1);
 		case '3':
-			if ((ret = term_pop()) < 0)
+			if ((ret = term_pop(NULL, 0)) < 0)
 				return (-1);
 			if ((buff[3] = ret) != '~')
 				return (0);
@@ -155,7 +155,7 @@ static int		handle_spe_char(prompt_t *prompt, char *buff) {
 	}
 }
 
-int			prompt_query(prompt_t *prompt, cmd_t *cmd) {
+int			prompt_query(prompt_t *prompt, cmd_t *cmd, void (*fn)(void), uint64_t usleep) {
 	int			ret;
 	char		buff[MAX_SZ] = { 0 };
 
@@ -163,7 +163,7 @@ int			prompt_query(prompt_t *prompt, cmd_t *cmd) {
 	prompt->cur_cmd.sz = 0;
 	prompt->hist_idx = SPE_VAL;
 	printf("%s", prompt->hdr);
-	for (; (ret = term_pop()) != '\n'; bzero(buff, MAX_SZ)) {
+	for (; (ret = term_pop(fn, usleep)) != '\n'; bzero(buff, MAX_SZ)) {
 		if ((buff[0] = ret) < 0)
 			return (-1);
 		prompt->hist_flag = 0;

@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/22 20:47:06 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/26 12:50:39 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/27 23:47:20 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,10 @@ typedef enum		restart_pol_e {
 
 glob_t		glob = { 0 };
 
+void		test(void) {
+	printf(".");
+}
+
 int			main(int ac, char **av) {
 	cmd_t			cmd;
 	action_t		action;
@@ -48,7 +52,7 @@ int			main(int ac, char **av) {
 	if (!(glob.prompt = prompt_new("> ")))
 		clean_exit("Can init prompt", 5);
 	while (42) {
-		if (prompt_query(glob.prompt, &cmd))
+		if (prompt_query(glob.prompt, &cmd, NULL, 0))
 			clean_exit("Can't access terminal", 6);
 		action.sz = cmd_split(&cmd, action.cmds, 2);
 		if (!action.sz)
