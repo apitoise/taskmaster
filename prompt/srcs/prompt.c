@@ -6,7 +6,7 @@
 /*   By: herrfalco <fcadet@student.42.fr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/27 11:58:05 by herrfalco         #+#    #+#             */
-/*   Updated: 2023/04/28 16:07:17 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/28 20:13:18 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,11 +45,11 @@ static int		handle_esc(prompt_t *prompt, char *buff) {
 	cmd_t		*cmd;
 
 	buff[0] = '^';
-	if ((ret = term_pop()) == EOF)
+	if ((ret = term_pop()) == -1)
 		return (-1);
 	if ((buff[1] = ret) != '[')
 		return (0);
-	if ((ret = term_pop()) == EOF)
+	if ((ret = term_pop()) == -1)
 		return (-1);
 	switch ((buff[2] = ret)) {
 		case 'A':
@@ -83,7 +83,7 @@ static int		handle_esc(prompt_t *prompt, char *buff) {
 			prompt->cur_pos = prompt->cur_cmd.sz;
 			return (1);
 		case '3':
-			if ((ret = term_pop()) ==  EOF)
+			if ((ret = term_pop()) ==  -1)
 				return (-1);
 			if ((buff[3] = ret) != '~')
 				return (0);
@@ -97,6 +97,7 @@ static int		handle_esc(prompt_t *prompt, char *buff) {
 				|| ((prompt->cur_cmd.sz + strlen(prompt->hdr)) % col)), D_BW))
 				return (-1);
 			printf("\033[?25h");
+			fflush(stdout);
 			return (1);
 		case 'C':
 			prompt->hist_flag = 1;
@@ -149,6 +150,7 @@ static int		handle_spe_char(prompt_t *prompt, char *buff) {
 				|| ((prompt->cur_cmd.sz + strlen(prompt->hdr)) % col)), D_BW))
 				return (-1);
 			printf("\033[?25h");
+			fflush(stdout);
 			return (1);
 		default:
 			return (0);
@@ -164,7 +166,7 @@ int			prompt_query(prompt_t *prompt, cmd_t *cmd) {
 	prompt->hist_idx = SPE_VAL;
 	printf("%s", prompt->hdr);
 	for (; (ret = term_pop()) != '\n'; bzero(buff, MAX_SZ)) {
-		if (ret == EOF)
+		if (ret == -1)
 			return (-1);
 		buff[0] = ret;
 		prompt->hist_flag = 0;
@@ -180,6 +182,7 @@ int			prompt_query(prompt_t *prompt, cmd_t *cmd) {
 				- prompt->cur_pos - strlen(buff), D_BW))
 				return (-1);
 			printf("\033[?25h");
+			fflush(stdout);
 			prompt->cur_pos += strlen(buff);
 		}
 		if (!prompt->hist_flag)

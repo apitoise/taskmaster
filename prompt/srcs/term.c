@@ -6,7 +6,7 @@
 /*   By: herrfalco <fcadet@student.42.fr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/27 11:16:03 by herrfalco         #+#    #+#             */
-/*   Updated: 2023/04/28 16:11:04 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/28 20:13:08 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,25 +14,17 @@
 
 static term_t				g_term;
 
-static int	term_getchar(void) {
-	fd_set			set;
-	struct timeval	timeout = {
-		.tv_sec = 0,
-		.tv_usec = g_term.usleep,
-	};
+static int	term_getchar() {
+	int				c = 0;
+	int				ret;
 
-	while (42) {
-		FD_ZERO(&set);
-		FD_SET(STDIN_FILENO, &set);
-		if (select(STDIN_FILENO + 1, &set,
-				NULL, NULL, &timeout) == -1)
+	while ((ret = read(STDIN_FILENO, &c, 1)) != 1) {
+		if (ret < 0)
 			return (-1);
-		if (FD_ISSET(STDIN_FILENO, &set))
-			return (getchar());
-		if (g_term.fn)
-			g_term.fn();
+		g_term.fn();
+		usleep(g_term.usleep);
 	}
-	return (-1);
+	return (c);
 }
 
 int		term_init(void (*fn)(void), uint64_t usleep) {
@@ -40,6 +32,7 @@ int		term_init(void (*fn)(void), uint64_t usleep) {
 
     if (tcgetattr(STDIN_FILENO, &g_term.save))
 		return (-1);
+	setvbuf(stdout, NULL, _IONBF, 0);
 	bzero(&g_term.in_buff, sizeof(in_buff_t));
 	g_term.fn = fn;
 	g_term.usleep = usleep;
@@ -84,8 +77,9 @@ int		term_get_cur(uint64_t *row, uint64_t *col) {
 	uint8_t		step;
 
 	printf("\033[6n");
+	fflush(stdout);
 	for (step = 0, row_res = 0, col_res = 0; step < 4;) {
-		if ((c = term_getchar()) == EOF)
+		if ((c = term_getchar()) == -1)
 			return (-1);
 		switch (step) {
 			case 0:
@@ -95,7 +89,7 @@ int		term_get_cur(uint64_t *row, uint64_t *col) {
 					term_push(c);
 				break;
 			case 1:
-				if (c == '[')	
+				if (c == '[')
 					++step;
 				else
 					step = 0;
@@ -141,11 +135,13 @@ int		term_set_cur(uint64_t delta, dir_t dir) {
 			printf("\033[%lu;%luH",
 				cur_y + (cur_x + delta) / term_w + 1,
 				(cur_x + delta) % term_w + 1);
+			fflush(stdout);
 			break;
 		case D_BW:
 			printf("\033[%lu;%luH",
 				cur_y - (delta + term_w - cur_x - 1) / term_w + 1,
 				(term_w - (delta + term_w - cur_x) % term_w) % term_w + 1);
+			fflush(stdout);
 	}
 	return (0);
 }

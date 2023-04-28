@@ -6,7 +6,7 @@
 /*   By: herrfalco <fcadet@student.42.fr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/27 10:57:45 by herrfalco         #+#    #+#             */
-/*   Updated: 2023/03/28 11:24:02 by herrfalco        ###   ########.fr       */
+/*   Updated: 2023/04/28 19:29:52 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,7 @@ void	cmd_print(const cmd_t *cmd, uint64_t idx, char *bef) {
 	if (bef)
 		printf("%s", bef);
 	printf("%.*s", (int)(cmd->sz - idx), cmd->buff + idx);
+	fflush(stdout);
 }
 
 uint64_t	cmd_split(cmd_t *cmd, char **res, uint64_t n_res) {
