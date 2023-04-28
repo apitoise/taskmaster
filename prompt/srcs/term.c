@@ -6,7 +6,7 @@
 /*   By: herrfalco <fcadet@student.42.fr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/27 11:16:03 by herrfalco         #+#    #+#             */
-/*   Updated: 2023/04/28 20:13:08 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/28 22:31:41 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,14 +17,28 @@ static term_t				g_term;
 static int	term_getchar() {
 	int				c = 0;
 	int				ret;
+	fd_set			set;
+	struct timeval	timeout;
 
-	while ((ret = read(STDIN_FILENO, &c, 1)) != 1) {
+	while (42) {
+		if ((ret = read(STDIN_FILENO, &c, 1)) == 1)
+			return (c);
 		if (ret < 0)
 			return (-1);
-		g_term.fn();
-		usleep(g_term.usleep);
+		while (42) {
+			FD_ZERO(&set);
+			FD_SET(STDIN_FILENO, &set);
+			timeout.tv_sec = 0;
+			timeout.tv_usec = g_term.usleep;
+			if (select(STDIN_FILENO + 1, &set,
+				NULL, NULL, &timeout) == -1)
+				return (-1);
+			g_term.fn();
+			if (FD_ISSET(STDIN_FILENO, &set))
+				break;
+		}
 	}
-	return (c);
+	return (-1);
 }
 
 int		term_init(void (*fn)(void), uint64_t usleep) {
