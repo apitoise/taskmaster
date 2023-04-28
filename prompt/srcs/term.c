@@ -6,41 +6,64 @@
 /*   By: herrfalco <fcadet@student.42.fr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/27 11:16:03 by herrfalco         #+#    #+#             */
-/*   Updated: 2023/04/23 09:42:10 by herrfalco        ###   ########.fr       */
+/*   Updated: 2023/04/28 16:11:04 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../hdrs/term.h"
 
-static struct termios		g_term;
-static in_buff_t			g_in_buff = { 0 };
+static term_t				g_term;
 
-int		term_init(void) {
+static int	term_getchar(void) {
+	fd_set			set;
+	struct timeval	timeout = {
+		.tv_sec = 0,
+		.tv_usec = g_term.usleep,
+	};
+
+	while (42) {
+		FD_ZERO(&set);
+		FD_SET(STDIN_FILENO, &set);
+		if (select(STDIN_FILENO + 1, &set,
+				NULL, NULL, &timeout) == -1)
+			return (-1);
+		if (FD_ISSET(STDIN_FILENO, &set))
+			return (getchar());
+		if (g_term.fn)
+			g_term.fn();
+	}
+	return (-1);
+}
+
+int		term_init(void (*fn)(void), uint64_t usleep) {
 	struct termios	new_term;
 
-    if (tcgetattr(STDIN_FILENO, &g_term))
+    if (tcgetattr(STDIN_FILENO, &g_term.save))
 		return (-1);
-	new_term = g_term;
-	new_term.c_lflag &= ~(ICANON | ECHO);
-	new_term.c_cc[VMIN] = 1;
+	bzero(&g_term.in_buff, sizeof(in_buff_t));
+	g_term.fn = fn;
+	g_term.usleep = usleep;
+	new_term = g_term.save;
+	new_term.c_cc[VMIN] = 0;
 	new_term.c_cc[VTIME] = 0;
+	new_term.c_lflag &= ~(ICANON | ECHO);
     return (tcsetattr(STDIN_FILENO, TCSANOW, &new_term));
 }
 
 int		 term_fini(void) {
-	return (tcsetattr(STDIN_FILENO, TCSANOW, &g_term));
+	return (tcsetattr(STDIN_FILENO, TCSANOW, &g_term.save));
 }
 
 int		term_pop(void) {
-	int		c;
+	int				c;
 
-	return ((c = in_buff_pop(&g_in_buff)) >= 0
-		|| (c = getchar()) != EOF
-		? c : -1);
+	if ((c = in_buff_pop(&g_term.in_buff)) >= 0)
+		return (c);
+	return (term_getchar());
 }
 
 int		term_push(char c) {
-	return (in_buff_push(&g_in_buff, c));
+	return (in_buff_push(&g_term.in_buff, c));
 }
 
 int		term_dim(uint64_t *row, uint64_t *col) {
@@ -56,23 +79,49 @@ int		term_dim(uint64_t *row, uint64_t *col) {
 }
 
 int		term_get_cur(uint64_t *row, uint64_t *col) {
-	int			c, ret;
+	int			c;
 	uint64_t	row_res, col_res;
+	uint8_t		step;
 
 	printf("\033[6n");
-	while ((c = getchar()) != '\033')
-		if (c == EOF || term_push(c))
+	for (step = 0, row_res = 0, col_res = 0; step < 4;) {
+		if ((c = term_getchar()) == EOF)
 			return (-1);
-#ifdef __APPLE__
-	while ((ret = scanf("[%8llu;%8lluR", &row_res, &col_res)) != 2) {
-#else
-	while ((ret = scanf("[%8lu;%8luR", &row_res, &col_res)) != 2) {
-#endif
-		if (ret == EOF)
-			return (-1);
-		while ((c = getchar()) != '\033')
-			if (c == EOF)
-				return (-1);
+		switch (step) {
+			case 0:
+				if (c == '\033')
+					++step;
+				else
+					term_push(c);
+				break;
+			case 1:
+				if (c == '[')	
+					++step;
+				else
+					step = 0;
+				break;
+			case 2:
+				if (c == ';')
+					++step;
+				else if (isdigit(c))
+					row_res = row_res * 10 + c - '0';
+				else {
+					row_res = 0;
+					step = 0;
+				}
+				break;
+			case 3:
+				if (c == 'R')
+					++step;
+				else if (isdigit(c))	
+					col_res = col_res * 10 + c - '0';
+				else {
+					row_res = 0;
+					col_res = 0;
+					step = 0;
+				}
+				break;
+		}
 	}
 	if (row)
 		*row = row_res - 1;
@@ -89,20 +138,12 @@ int		term_set_cur(uint64_t delta, dir_t dir) {
 		return (-1);
 	switch (dir) {
 		case D_FW:
-#ifdef __APPLE__
-			printf("\033[%llu;%lluH",
-#else
 			printf("\033[%lu;%luH",
-#endif
 				cur_y + (cur_x + delta) / term_w + 1,
 				(cur_x + delta) % term_w + 1);
 			break;
 		case D_BW:
-#ifdef __APPLE__
-			printf("\033[%llu;%lluH",
-#else
 			printf("\033[%lu;%luH",
-#endif
 				cur_y - (delta + term_w - cur_x - 1) / term_w + 1,
 				(term_w - (delta + term_w - cur_x) % term_w) % term_w + 1);
 	}

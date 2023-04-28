@@ -6,7 +6,7 @@
 /*   By: herrfalco <fcadet@student.42.fr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/27 10:58:01 by herrfalco         #+#    #+#             */
-/*   Updated: 2023/04/21 16:38:51 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/27 23:15:53 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdint.h>
+#include <fcntl.h>
 
 #define MAX_SZ			128
 #define SPE_VAL			((uint64_t)-1)

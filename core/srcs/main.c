@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/22 20:47:06 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/26 12:50:39 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/28 16:03:19 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,11 @@ typedef enum		restart_pol_e {
 
 glob_t		glob = { 0 };
 
+void		test(void) {
+//	printf(".");
+	return;
+}
+
 int			main(int ac, char **av) {
 	cmd_t			cmd;
 	action_t		action;
@@ -45,7 +50,7 @@ int			main(int ac, char **av) {
 		clean_exit("Can't init program's dictionnary", 3);
 	if (prog_dic_run(glob.prog_dic, NULL) == -1)
 		clean_exit("Can't fork current program", 4);
-	if (!(glob.prompt = prompt_new("> ")))
+	if (!(glob.prompt = prompt_new("> ", test, 1000)))
 		clean_exit("Can init prompt", 5);
 	while (42) {
 		if (prompt_query(glob.prompt, &cmd))

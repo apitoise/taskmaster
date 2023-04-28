@@ -1,9 +1,9 @@
 NAME	=	taskmaster
-SRCS	=	shell_prompt/srcs/cmd.c \
-		shell_prompt/srcs/hist.c \
-		shell_prompt/srcs/in_buff.c \
-		shell_prompt/srcs/prompt.c \
-		shell_prompt/srcs/term.c \
+SRCS	=	prompt/srcs/cmd.c \
+		prompt/srcs/hist.c \
+		prompt/srcs/in_buff.c \
+		prompt/srcs/prompt.c \
+		prompt/srcs/term.c \
 		core/srcs/main.c \
 		core/srcs/action.c \
 		core/srcs/clean.c \
