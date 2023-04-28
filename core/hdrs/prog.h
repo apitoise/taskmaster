@@ -41,7 +41,7 @@ typedef struct		prog_s {
 	char			*std_err;
 	vec_t			*env;
 	char			*workingdir;
-	uint64_t		umask;
+	mode_t			umask;
 	vec_t			*procs;
 }					prog_t;
 

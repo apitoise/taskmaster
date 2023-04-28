@@ -56,7 +56,7 @@ prog_t			*prog_new(char *name, dict_t *opts) {
 		|| dic_get_unw(opts, "stderr", (void **)&new->std_err, "./log_err", DT_STR)
 		|| dic_get_unw(opts, "env", (void **)&env, NULL, DT_VEC)
 		|| dic_get_unw(opts, "workingdir", (void **)&new->workingdir, "", DT_STR)
-		|| dic_get_unw(opts, "umask", (void **)&new->umask, NULL, DT_UNB)
+		|| dic_get_unw(opts, "umask", (void **)&new->umask, (void *)0002, DT_UNB)
 		|| !(new->exitcodes = vec_unw(ex_cds, DT_UNB))
 		|| !(new->env = vec_unw(env, DT_STR))
 		|| !(new->procs = vec_new(new->numprocs))
@@ -102,7 +102,7 @@ void		prog_print(prog_t *prog) {
 			i + 1 < prog->exitcodes->sz ? ", " : " ");
 	printf("]\n");
 #else
-	printf("umask: %s%lo\n", prog->umask ? "0" : "", prog->umask);
+	printf("umask: %s%04o\n", prog->umask ? "0" : "", prog->umask);
 	printf("stoptime: %lu\n", prog->stoptime);
 	printf("numprocs: \"%lu\"\n", prog->numprocs);
 	printf("starttime: %lu\n", prog->starttime);
@@ -212,6 +212,7 @@ int			prog_run(prog_t *prog) {
 			free(new_proc);
 			return (-1);
 		} else if (!new_proc->pid) {
+			umask(prog->umask);
 			if (io_redirect(STDOUT_FILENO, prog->std_out)
 				|| io_redirect(STDERR_FILENO, prog->std_err)
 				|| str_split(prog->cmd, args, STD_MAX)
