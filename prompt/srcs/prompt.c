@@ -6,16 +6,16 @@
 /*   By: herrfalco <fcadet@student.42.fr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/27 11:58:05 by herrfalco         #+#    #+#             */
-/*   Updated: 2023/04/27 23:38:48 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/28 16:07:17 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../hdrs/prompt.h"
 
-prompt_t	*prompt_new(const char *hdr) {
+prompt_t	*prompt_new(const char *hdr, void (*fn)(void), uint64_t usleep) {
 	prompt_t	*new;
 
-	if (term_init()
+	if (term_init(fn, usleep)
 		|| !(new = malloc(sizeof(prompt_t))))
 		return (NULL);
 	bzero(new, sizeof(prompt_t));
@@ -45,11 +45,11 @@ static int		handle_esc(prompt_t *prompt, char *buff) {
 	cmd_t		*cmd;
 
 	buff[0] = '^';
-	if ((ret = term_pop(NULL, 0)) < 0)
+	if ((ret = term_pop()) == EOF)
 		return (-1);
 	if ((buff[1] = ret) != '[')
 		return (0);
-	if ((ret = term_pop(NULL, 0)) < 0)
+	if ((ret = term_pop()) == EOF)
 		return (-1);
 	switch ((buff[2] = ret)) {
 		case 'A':
@@ -83,7 +83,7 @@ static int		handle_esc(prompt_t *prompt, char *buff) {
 			prompt->cur_pos = prompt->cur_cmd.sz;
 			return (1);
 		case '3':
-			if ((ret = term_pop(NULL, 0)) < 0)
+			if ((ret = term_pop()) ==  EOF)
 				return (-1);
 			if ((buff[3] = ret) != '~')
 				return (0);
@@ -155,7 +155,7 @@ static int		handle_spe_char(prompt_t *prompt, char *buff) {
 	}
 }
 
-int			prompt_query(prompt_t *prompt, cmd_t *cmd, void (*fn)(void), uint64_t usleep) {
+int			prompt_query(prompt_t *prompt, cmd_t *cmd) {
 	int			ret;
 	char		buff[MAX_SZ] = { 0 };
 
@@ -163,9 +163,10 @@ int			prompt_query(prompt_t *prompt, cmd_t *cmd, void (*fn)(void), uint64_t usle
 	prompt->cur_cmd.sz = 0;
 	prompt->hist_idx = SPE_VAL;
 	printf("%s", prompt->hdr);
-	for (; (ret = term_pop(fn, usleep)) != '\n'; bzero(buff, MAX_SZ)) {
-		if ((buff[0] = ret) < 0)
+	for (; (ret = term_pop()) != '\n'; bzero(buff, MAX_SZ)) {
+		if (ret == EOF)
 			return (-1);
+		buff[0] = ret;
 		prompt->hist_flag = 0;
 		if ((ret = handle_spe_char(prompt, buff)) < 0)
 			return (-1);
@@ -175,7 +176,8 @@ int			prompt_query(prompt_t *prompt, cmd_t *cmd, void (*fn)(void), uint64_t usle
 			cmd_print(&prompt->cur_cmd, prompt->cur_pos, "\033[?25l");
 			if (new_line(prompt))
 				return (-1);
-			if (term_set_cur(prompt->cur_cmd.sz - prompt->cur_pos - strlen(buff), D_BW))
+			if (term_set_cur(prompt->cur_cmd.sz
+				- prompt->cur_pos - strlen(buff), D_BW))
 				return (-1);
 			printf("\033[?25h");
 			prompt->cur_pos += strlen(buff);

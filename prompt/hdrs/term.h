@@ -6,7 +6,7 @@
 /*   By: herrfalco <fcadet@student.42.fr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/27 11:12:49 by herrfalco         #+#    #+#             */
-/*   Updated: 2023/04/27 23:35:55 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/04/28 15:12:33 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,9 +21,16 @@ typedef enum		dir_e {
 	D_BW,
 }					dir_t;
 
-int		term_init(void);
+typedef struct		term_s {
+	struct termios	save;
+	in_buff_t		in_buff;
+	void			(*fn)(void);
+	uint64_t		usleep;
+}					term_t;
+
+int		term_init(void (*fn)(void), uint64_t usleep);
 int		term_fini(void);
-int		term_pop(void (*fn)(void), uint64_t usleep);
+int		term_pop(void);
 int		term_push(char c);
 int		term_dim(uint64_t *row, uint64_t *col);
 int		term_get_cur(uint64_t *row, uint64_t *col);
