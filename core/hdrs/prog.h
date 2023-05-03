@@ -22,8 +22,7 @@ typedef int			(*cmp_fn_t)(void *, void *);
 
 typedef struct		proc_s {
 	pid_t			pid;
-	time_t			timestamp;
-	int				status;
+	uint64_t		status;
 }					proc_t;
 
 typedef struct		prog_s {
@@ -43,6 +42,8 @@ typedef struct		prog_s {
 	char			*workingdir;
 	mode_t			umask;
 	vec_t			*procs;
+	time_t			timestamp;
+	uint64_t		retries;
 }					prog_t;
 
 typedef struct		map_s {

@@ -199,12 +199,13 @@ int			prog_run(prog_t *prog) {
 	static char	buff[STD_MAX * 2];
 	proc_t		*new_proc;
 
+	if (time(&prog->timestamp) == -1)
+		return (-1);
 	for (i = 0; i < prog->numprocs; ++i) {
-		if (!(new_proc = malloc(sizeof(proc_t))))
-			return (-1);
-		if (time(&new_proc->timestamp) == -1
+		if (!(new_proc = malloc(sizeof(proc_t)))
 			|| vec_push_back(prog->procs, new_proc)) {
-			free(new_proc);
+			if (new_proc)
+				free(new_proc);
 			return (-1);
 		}
 		if ((new_proc->pid = fork()) == -1) {
@@ -240,6 +241,18 @@ int			prog_kill(prog_t *prog, int signal) {
 	return (ret);
 }
 
+static int	is_succeed(proc_t *proc, vec_t *exitcodes) {
+	uint64_t	i;
+	
+	if (WIFSIGNALED(proc->status))
+		return (0);
+	else if (WIFEXITED(proc->status))
+		for (i = 0; i < exitcodes->sz; ++i)
+			if (WEXITSTATUS(proc->status) == (uint64_t)exitcodes->data[i])
+				return (1);
+	return (0);
+}
+// TO DO: Changer l'affichage
 int			prog_status(prog_t *prog) {
 	uint64_t	i, started = 0,
 				succeed = 0,
@@ -251,13 +264,14 @@ int			prog_status(prog_t *prog) {
 	for (i = 0; i < prog->procs->sz; ++i) {
 		proc = (proc_t *)prog->procs->data[i];
 		if (!proc->pid) {
-			++succeed;
+			if (is_succeed(proc, prog->exitcodes)) ++succeed;
+			else ++failed;
 			continue ;
 		}
 		if (time(&timer) == -1)
 			return (-1);
 		if ((uint64_t)(timer)
-			>= prog->starttime + proc->timestamp)
+			>= prog->starttime + prog->timestamp)
 			++started;
 	}
 	if (!prog->procs->sz)

@@ -24,7 +24,7 @@ int		action_stop(action_t *action) {
 	if (action->sz != 2
 		|| dict_get(glob.prog_dic, action->cmds[1],
 		(void **)&prog)
-		|| prog_kill(prog, SIGKILL) //need to be gentle
+		|| prog_kill(prog, prog->stopsignal) //need to be gentle
 		|| prog_update(prog))
 		return (-1);
 	prog_clean_procs(prog);
@@ -43,7 +43,16 @@ int		action_start(action_t *action) {
 		if (((proc_t *)prog->procs->data[i])->pid)
 			return (-1);
 	prog_clean_procs(prog);
-	return (prog_run(prog));
+	for (; prog->retries < prog->startretries; ++prog->retries) {
+		if (!prog_run(prog)) {
+			prog->retries = 0;
+			return (0);
+		} else if (prog_kill(prog, SIGKILL)
+			|| prog_update(prog))
+			return (-1);
+		prog_clean_procs(prog);
+	}
+	return (-1);
 }
 
 int		action_restart(action_t *action) {
