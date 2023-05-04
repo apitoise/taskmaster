@@ -6,11 +6,12 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/22 20:47:06 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/28 22:32:49 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/05/04 09:24:54 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../hdrs/action.h"
+#include "../hdrs/monitor.h"
 
 /*
 Running x/y (x Failed, x Stopped)
@@ -23,18 +24,7 @@ Failed
 // function error handling
 // global accessors
 
-typedef enum		restart_pol_e {
-	RP_ALWAYS,
-	RP_NEVER,
-	RP_UNEXP,
-}					restart_pol_t;
-
 glob_t		glob = { 0 };
-
-void		monitoring(void) {
-	printf(".");
-	return;
-}
 
 int			main(int ac, char **av) {
 	cmd_t			cmd;
@@ -47,9 +37,11 @@ int			main(int ac, char **av) {
 		clean_exit("Can't load config file", 2);
 	if (!(glob.prog_dic = prog_dic_new(glob.config)))
 		clean_exit("Can't init program's dictionnary", 3);
+	/*
 	if (prog_dic_run(glob.prog_dic, NULL) == -1)
 		clean_exit("Can't fork current program", 4);
-	if (!(glob.prompt = prompt_new("> ", monitoring, 1000000)))
+		*/
+	if (!(glob.prompt = prompt_new("> ", monitor_fn, 1000000)))
 		clean_exit("Can init prompt", 5);
 	while (42) {
 		if (prompt_query(glob.prompt, &cmd))

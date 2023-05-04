@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 18:02:50 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/26 13:00:21 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/05/03 10:42:50 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,14 +104,9 @@ prog_dic_t	*prog_dic_reload(prog_dic_t *prog_dic, conf_t *conf) {
 	for (i = 0; i < prog_dic->keys->sz; ++i) {
 		old_prog = prog_dic->values->data[i];
 		if (dict_get(new, old_prog->name, (void **)&new_prog)
-			|| prog_cmp(new_prog, old_prog)) {
-			if (prog_kill(old_prog, SIGINT)
-				|| prog_update(old_prog)) {
-				prog_dic_free(new);
-				return (NULL);
-			}
-			prog_clean_procs(old_prog);
-		}
+			|| prog_cmp(new_prog, old_prog)
+			|| prog_clean_procs(old_prog, SIGKILL))
+			return (NULL);
 		else {
 			while (old_prog->procs->sz) {
 				vec_pop_back(old_prog->procs, (void **)&tmp);

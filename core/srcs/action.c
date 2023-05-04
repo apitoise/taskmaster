@@ -6,16 +6,16 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 16:31:29 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/26 12:59:33 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/05/03 10:41:53 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../hdrs/action.h"
 
+/*
 int		action_status(action_t *action) {
 	(void)action;
-	return (prog_dic_update(glob.prog_dic)
-		|| prog_dic_status(glob.prog_dic) ? -1 : 0);
+	return (prog_dic_status(glob.prog_dic) ? -1 : 0);
 }
 
 int		action_stop(action_t *action) {
@@ -24,10 +24,8 @@ int		action_stop(action_t *action) {
 	if (action->sz != 2
 		|| dict_get(glob.prog_dic, action->cmds[1],
 		(void **)&prog)
-		|| prog_kill(prog, prog->stopsignal) //need to be gentle
-		|| prog_update(prog))
+//		|| prog_clean_procs(prog, prog->stopsignal))
 		return (-1);
-	prog_clean_procs(prog);
 	return (0);
 }
 
@@ -42,15 +40,14 @@ int		action_start(action_t *action) {
 	for (i = 0; i < prog->procs->sz; ++i)
 		if (((proc_t *)prog->procs->data[i])->pid)
 			return (-1);
-	prog_clean_procs(prog);
+	if (prog_clean_procs(prog, SIGKILL))
+		return (-1);
 	for (; prog->retries < prog->startretries; ++prog->retries) {
 		if (!prog_run(prog)) {
 			prog->retries = 0;
 			return (0);
-		} else if (prog_kill(prog, SIGKILL)
-			|| prog_update(prog))
+		} else if (prog_clean_procs(prog, SIGKILL))
 			return (-1);
-		prog_clean_procs(prog);
 	}
 	return (-1);
 }
@@ -105,3 +102,4 @@ int		action_call(action_t *action) {
 	return (-1);
 //		fprintf(stderr, "%s: command not found", action->cmds[0]);
 }
+*/

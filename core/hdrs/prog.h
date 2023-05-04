@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 18:06:30 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/25 12:30:29 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/05/04 09:24:50 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,9 +20,29 @@ void	clean_exit_child(char *error, int ret);
 
 typedef int			(*cmp_fn_t)(void *, void *);
 
+typedef enum		state_e {
+	S_STOP,
+	S_STOP_WAIT,
+	S_STOPPED,		// Stopped or killed if time exceeded
+	S_START,
+	S_START_WAIT,
+	S_STARTED,
+	S_RETRY,
+	S_FATAL,		// Start fail with max retries
+	S_EXITED,		// Exited or signaled
+}					state_t;
+
+typedef enum		restart_pol_e {
+	RP_ALWAYS,
+	RP_NEVER,
+	RP_UNEXP,
+}					restart_pol_t;
+
 typedef struct		proc_s {
 	pid_t			pid;
-	uint64_t		status;
+	int				status;
+	state_t			state;
+	uint64_t		retry;
 }					proc_t;
 
 typedef struct		prog_s {
@@ -55,8 +75,8 @@ typedef struct		map_s {
 
 prog_t		*prog_new(char *name, dict_t *opts);
 void		prog_free(prog_t *prog);
-void		prog_print(prog_t *prog);
-void		prog_clean_procs(prog_t *prog);
+//void		prog_print(prog_t *prog);
+int			prog_clean_procs(prog_t *prog, int signal);
 int			prog_run(prog_t *prog);
 int			prog_update(prog_t *prog);
 int			prog_kill(prog_t *prog, int signal);

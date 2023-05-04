@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 18:00:57 by fcadet            #+#    #+#             */
-/*   Updated: 2023/04/26 10:14:11 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/05/04 07:49:54 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,24 +84,13 @@ void		prog_free(prog_t *prog) {
 }
 
 
+/*
 void		prog_print(prog_t *prog) {
 	uint64_t	i;
 
 	printf("cmd: \"%s\"\n", prog->cmd);
 	printf("autostart: \"%s\"\n", g_map.bools[prog->autostart]);
 	printf("autorestart: \"%s\"\n", g_map.auto_r[prog->autorestart]);
-#ifdef __APPLE__
-	printf("umask: %s%llo\n", prog->umask ? "0" : "", prog->umask);
-	printf("stoptime: %llu\n", prog->stoptime);
-	printf("numprocs: \"%llu\"\n", prog->numprocs);
-	printf("starttime: %llu\n", prog->starttime);
-	printf("startretries: %llu\n", prog->startretries);
-	printf("exitcodes: [ ");
-	for (i = 0; i < prog->exitcodes->sz; ++i)
-		printf("%llu%s", (uint64_t)prog->exitcodes->data[i],
-			i + 1 < prog->exitcodes->sz ? ", " : " ");
-	printf("]\n");
-#else
 	printf("umask: %s%04o\n", prog->umask ? "0" : "", prog->umask);
 	printf("stoptime: %lu\n", prog->stoptime);
 	printf("numprocs: \"%lu\"\n", prog->numprocs);
@@ -112,7 +101,6 @@ void		prog_print(prog_t *prog) {
 		printf("%lu%s", (uint64_t)prog->exitcodes->data[i],
 			i + 1 < prog->exitcodes->sz ? ", " : " ");
 	printf("]\n");
-#endif // __APPLE__
 	printf("workingdir: \"%s\"\n", prog->workingdir);
 	printf("stopsignal: ");
 	for (i = 0; i < 7; ++i) {
@@ -128,79 +116,27 @@ void		prog_print(prog_t *prog) {
 		printf("  \"%s\"\n", (char *)prog->env->data[i]);
 	printf("}\n");
 }
+*/
 
-static int	io_redirect(int old_fd, char *new_path) {
-	int	new_fd;
-
-	if (*new_path
-		&& (new_fd = open(new_path, O_WRONLY | O_CREAT | O_APPEND, 0666)) != -1) {
-		if (dup2(new_fd, old_fd) == -1) {
-			close(new_fd);
-			return (-1);
-		}
-	}
-	return (0);
-}
-
-static int	str_split(char *str, char **res, uint64_t n_res) {
-	uint64_t	i, in = 0, j = 0, len = strlen(str);
-
-	for (i = 0; i < len; ++i) {
-		if (isspace(str[i])) {
-			str[i] = '\0';
-			in = 0;
-		}
-		else if (!in) {
-			if (j == n_res)
-				return (-1);
-			res[j++] = &str[i];
-			in = 1;
-		}
-	}
-	str[i] = '\0';
-	res[j] = NULL;
-	return (0);
-}
-
-int				prog_update(prog_t *prog) {
-	uint64_t		i;
-	char			path[STD_MAX];
-	proc_t			*proc;
-	int				ret, status;
-
-	for (i = 0; i < prog->procs->sz; ++i) {
-		proc = prog->procs->data[i];
-		if (proc->pid) {
-			sprintf(path, "/proc/%d/status", proc->pid);
-			if (!access(path, F_OK)) { // if exists
-				if ((ret = waitpid(proc->pid, &status, WNOHANG)) < 0)
-					return (-1);
-				if (access(path, F_OK)) { // if not exists
-					proc->pid = 0;
-					proc->status = status;
-				}
-			}
-		}
-	}
-	return (0);
-}
-
-void		prog_clean_procs(prog_t *prog) {
+/*
+int			prog_clean_procs(prog_t *prog, int signal) {
 	uint64_t	i;
 
+	if (prog_kill(prog, signal)
+		|| prog_update(prog))
+		return (-1);
 	for (i = 0; i < prog->procs->sz; ++i)
 		free(prog->procs->data[i]);
 	prog->procs->sz = 0;
+	return (0);
 }
+*/
 
-int			prog_run(prog_t *prog) {
+int			prog_proc_create(prog_t *prog) {
 	uint64_t	i;
-	char		*args[STD_MAX];
 	static char	buff[STD_MAX * 2];
 	proc_t		*new_proc;
 
-	if (time(&prog->timestamp) == -1)
-		return (-1);
 	for (i = 0; i < prog->numprocs; ++i) {
 		if (!(new_proc = malloc(sizeof(proc_t)))
 			|| vec_push_back(prog->procs, new_proc)) {
@@ -208,6 +144,10 @@ int			prog_run(prog_t *prog) {
 				free(new_proc);
 			return (-1);
 		}
+		new_proc->state = prog->autostart
+			? S_START : S_STOPPED;
+		new_proc->retry = 0;
+		/*
 		if ((new_proc->pid = fork()) == -1) {
 			vec_pop_back(prog->procs, NULL);
 			free(new_proc);
@@ -224,10 +164,12 @@ int			prog_run(prog_t *prog) {
 				clean_exit_child(buff, 1); // exit code number ?
 			}
 		}
+		*/
 	}
 	return (0);
 }
 
+/*
 int			prog_kill(prog_t *prog, int signal) {
 	uint64_t	i;
 	int			ret = 0;
@@ -252,6 +194,7 @@ static int	is_succeed(proc_t *proc, vec_t *exitcodes) {
 				return (1);
 	return (0);
 }
+
 // TO DO: Changer l'affichage
 int			prog_status(prog_t *prog) {
 	uint64_t	i, started = 0,
@@ -318,3 +261,4 @@ int			prog_cmp(prog_t *p1, prog_t *p2) {
 		return (1);
 	return (0);
 }
+*/

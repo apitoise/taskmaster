@@ -1,24 +1,23 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   clean.h                                            :+:      :+:    :+:   */
+/*   monitor.h                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2023/04/24 10:04:27 by fcadet            #+#    #+#             */
-/*   Updated: 2023/05/03 11:59:14 by fcadet           ###   ########.fr       */
+/*   Created: 2023/05/03 11:13:15 by fcadet            #+#    #+#             */
+/*   Updated: 2023/05/03 12:00:04 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef CLEAN_H
-#define CLEAN_H
+#ifndef MONITOR_H
+#define MONITOR_H
 
+#include "includes.h"
+#include "prog_dic.h"
 #include "glob.h"
+#include "clean.h"
 
-void	clean_glob(void);
-/*
-void	clean_exit(char *error, int ret);
-void	clean_exit_child(char *error, int ret);
-*/
+void		monitor_fn(void);
 
-#endif // CLEAN_H
+#endif // MONITOR_H
