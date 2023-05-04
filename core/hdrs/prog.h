@@ -27,8 +27,8 @@ typedef enum		state_e {
 	S_START,
 	S_START_WAIT,
 	S_STARTED,
+	S_START_FAIL,
 	S_RETRY,
-	S_FATAL,		// Start fail with max retries
 	S_EXITED,		// Exited or signaled
 }					state_t;
 

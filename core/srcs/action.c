@@ -12,6 +12,54 @@
 
 #include "../hdrs/action.h"
 
+int		action_stop(action_t *action) {
+	prog_t		*prog;
+	proc_t		*proc;
+	uint64_t	i;
+
+	if (action->sz != 2
+		|| dict_get(glob.prog_dic, action->cmds[1],
+		(void **)&prog))
+		return (-1);
+	for (i = 0; i < prog->procs->sz; ++i) {
+		proc = prog->procs->data[i];
+		proc->state = (proc->state != S_STARTED
+			&& proc->state != S_START_WAIT)
+			? S_STOPPED : S_STOP;
+	}
+	return (0);
+}
+
+int		action_start(action_t *action) {
+	prog_t		*prog;
+	proc_t		*proc;
+	uint64_t	i;
+	
+	if (action->sz != 2
+		|| dict_get(glob.prog_dic, action->cmds[1],
+		(void **)&prog))
+		return (-1);
+	for (i = 0; i < prog->procs->sz; ++i) {
+		proc = prog->procs->data[i];
+		proc->retry = 0;
+		if (proc->state == S_START_WAIT
+			|| proc->state == S_STARTED)
+			continue;
+		else if (proc->state == S_STOP_WAIT) {
+			kill(proc->pid, SIGKILL);
+			waitpid(proc->pid, &proc->status, WNOHANG);
+		}
+		proc->state = S_START;
+	}
+	return (0);
+}
+
+int		action_restart(action_t *action) {
+	return (action_stop(action)
+		|| action_start(action)
+		? -1 : 0);
+}	
+
 /*
 int		action_status(action_t *action) {
 	(void)action;
@@ -52,11 +100,7 @@ int		action_start(action_t *action) {
 	return (-1);
 }
 
-int		action_restart(action_t *action) {
-	return (action_stop(action)
-		|| action_start(action)
-		? -1 : 0);
-}
+
 
 int		action_reload(action_t *action) {
 	glob_t		new = { 0 };

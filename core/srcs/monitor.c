@@ -62,24 +62,21 @@ void		monitor_fn(void) {
 			sprintf(path, "/proc/%d/status", proc->pid);
 			switch (proc->state) {
 				case S_STOP:
-					if (!kill(proc->pid, prog->stopsignal)) {
-						proc->state = S_STOP_WAIT;
-						prog->timestamp = current;
-					}
-					else
-						proc->state = S_FATAL;
-					break;
+					kill(proc->pid, prog->stopsignal);
+					proc->state = S_STOP_WAIT;
+					prog->timestamp = current;
 				case S_STOP_WAIT: 
-					if (waitpid(proc->pid, &proc->status, WNOHANG) == -1)
-						proc->state = S_FATAL;
-					else if (access(path, F_OK)
-						&& prog->timestamp + prog->stoptime <= current)
+					if (prog->timestamp + prog->stoptime < current)
+						kill(proc->pid, SIGKILL);
+					waitpid(proc->pid, &proc->status, WNOHANG);
+					if (access(path, F_OK))
 						proc->state = S_STOPPED;
 					break;
 				case S_START: 
-					if ((proc->pid = fork()) == -1)
+					if ((proc->pid = fork()) == -1) {
 						proc->state = S_RETRY;	
-					else if (!proc->pid) {
+						break;
+					} else if (!proc->pid) {
 						umask(prog->umask);
 						if (io_redirect(STDOUT_FILENO, prog->std_out)
 							|| io_redirect(STDERR_FILENO, prog->std_err)
@@ -94,29 +91,23 @@ void		monitor_fn(void) {
 						prog->timestamp = current;
 						proc->state = S_START_WAIT;
 					}
-					break;
 				case S_START_WAIT:
-					if (access(path, F_OK)
-						|| waitpid(proc->pid, &proc->status, WNOHANG) == -1)
+					if (waitpid(proc->pid, &proc->status, WNOHANG) == -1
+						|| access(path, F_OK))
 						proc->state = S_RETRY;
-					if (access(path, F_OK))
-						proc->state = S_EXITED;
 					else if (prog->timestamp + prog->starttime <= current)
 						proc->state = S_STARTED;
-					break;
 				case S_STARTED: 
-					if (access(path, F_OK)
-						|| waitpid(proc->pid, &proc->status, WNOHANG) < 0
-						|| access(path, F_OK)) {
-						proc->state = S_RETRY;
-					}
+					if (waitpid(proc->pid, &proc->status, WNOHANG) < 0
+						|| access(path, F_OK))
+						proc->state = S_EXITED;
 					break;
 				case S_RETRY:
 					if (proc->retry < prog->startretries) {
 						++proc->retry;
 						proc->state = S_START;
 					} else
-						proc->state = S_FATAL;
+						proc->state = S_START_FAIL;
 					break;
 				case S_EXITED: 
 					switch (prog->autorestart) {
