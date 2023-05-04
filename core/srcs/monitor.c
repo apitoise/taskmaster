@@ -61,11 +61,20 @@ void		monitor_fn(void) {
 			proc = prog->procs->data[j];
 			sprintf(path, "/proc/%d/status", proc->pid);
 			switch (proc->state) {
-				case S_STOP: 
+				case S_STOP:
+					if (!kill(proc->pid, prog->stopsignal)) {
+						proc->state = S_STOP_WAIT;
+						prog->timestamp = current;
+					}
+					else
+						proc->state = S_FATAL;
 					break;
 				case S_STOP_WAIT: 
-					break;
-				case S_STOPPED: 
+					if (waitpid(proc->pid, &proc->status, WNOHANG) == -1)
+						proc->state = S_FATAL;
+					else if (access(path, F_OK)
+						&& prog->timestamp + prog->stoptime <= current)
+						proc->state = S_STOPPED;
 					break;
 				case S_START: 
 					if ((proc->pid = fork()) == -1)
