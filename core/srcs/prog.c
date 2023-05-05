@@ -102,6 +102,13 @@ int			prog_proc_create(prog_t *prog) {
 	return (0);
 }
 
+void		prog_kill(prog_t *prog) {
+	proc_t		*proc;
+
+	while (!vec_pop_back(prog->procs, (void **)&proc))
+		kill(proc->pid, SIGKILL);
+}
+
 int			prog_status(prog_t *prog) {
 	uint64_t	i, started = 0,
 				succeed = 0,
@@ -156,7 +163,7 @@ static int	vec_cmp(vec_t *v1, vec_t *v2, cmp_fn_t cmp_fn) {
 }
 
 int			prog_cmp(prog_t *p1, prog_t *p2) {
-	if (strcmp(p1->cmd, p2->cmd)
+	return (!!(strcmp(p1->cmd, p2->cmd)
 		|| p1->numprocs != p2->numprocs
 		|| p1->autostart != p2->autostart
 		|| p1->autorestart != p2->autorestart
@@ -169,7 +176,5 @@ int			prog_cmp(prog_t *p1, prog_t *p2) {
 		|| strcmp(p1->std_err, p2->std_err)
 		|| vec_cmp(p1->env, p2->env, (cmp_fn_t)strcmp)
 		|| strcmp(p1->workingdir, p2->workingdir)
-		|| p1->umask != p2->umask)
-		return (1);
-	return (0);
+		|| p1->umask != p2->umask));
 }

@@ -43,44 +43,17 @@ void		prog_dic_free(prog_dic_t *prog_dic) {
 	dict_free(prog_dic);
 }
 
-int			prog_dic_run(prog_dic_t *prog_dic, char *name) {
+int			prog_dic_proc_create(prog_dic_t *prog_dic) {
 	uint64_t	i;
 	prog_t		*prog;
 
-	if (name) {
-		if (dict_get(prog_dic, name, (void **)&prog)
-			|| prog_run(prog))
+	for (i = 0; i < prog_dic->keys->sz; ++i) {
+		prog = prog_dic->values->data[i];
+		if (!prog->procs->sz
+			&& prog_proc_create(prog))
 			return (-1);
-	} else {
-		for (i = 0; i < prog_dic->keys->sz; ++i) {
-			prog = prog_dic->values->data[i];
-			if (prog->procs->sz)
-				continue ;
-			if (prog->autostart
-				&& prog_run(prog))
-				return (-1);
-		}
 	}
 	return (0);
-}
-
-int			prog_dic_update(prog_dic_t *prog_dic) {
-	uint64_t		i;	
-
-	for (i = 0; i < prog_dic->keys->sz; ++i)
-		if (prog_update(prog_dic->values->data[i]))
-			return (-1);
-	return (0);
-}
-
-int			prog_dic_kill(prog_dic_t *prog_dic, int signal) {
-	uint64_t	i;
-	int		ret = 0;
-
-	for (i = 0; i < prog_dic->keys->sz; ++i)
-		if (prog_kill((prog_t *)prog_dic->values->data[i], signal))
-			ret = -1;
-	return (ret);
 }
 
 int			prog_dic_status(prog_dic_t *prog_dic) {
@@ -104,9 +77,10 @@ prog_dic_t	*prog_dic_reload(prog_dic_t *prog_dic, conf_t *conf) {
 	for (i = 0; i < prog_dic->keys->sz; ++i) {
 		old_prog = prog_dic->values->data[i];
 		if (dict_get(new, old_prog->name, (void **)&new_prog)
-			|| prog_cmp(new_prog, old_prog)
-			|| prog_clean_procs(old_prog, SIGKILL))
+			|| prog_cmp(new_prog, old_prog)) {
+			prog_kill(old_prog);
 			return (NULL);
+		}
 		else {
 			while (old_prog->procs->sz) {
 				vec_pop_back(old_prog->procs, (void **)&tmp);

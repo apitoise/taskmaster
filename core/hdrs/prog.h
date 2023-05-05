@@ -75,11 +75,9 @@ typedef struct		map_s {
 
 prog_t		*prog_new(char *name, dict_t *opts);
 void		prog_free(prog_t *prog);
-//void		prog_print(prog_t *prog);
-int			prog_clean_procs(prog_t *prog, int signal);
-int			prog_run(prog_t *prog);
-int			prog_update(prog_t *prog);
-int			prog_kill(prog_t *prog, int signal);
+int			prog_proc_create(prog_t *prog);
+void		prog_proc_free(prog_t *prog);
+void		prog_kill(prog_t *prog);
 int			prog_status(prog_t *prog);
 int			prog_cmp(prog_t *p1, prog_t *p2);
 

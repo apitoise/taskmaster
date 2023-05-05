@@ -73,8 +73,6 @@ int		action_exit(action_t *action) {
 	return (0);
 }
 
-//a revoir
-/*
 int		action_reload(action_t *action) {
 	glob_t		new = { 0 };
 	
@@ -91,9 +89,8 @@ int		action_reload(action_t *action) {
 	config_free(glob.config);
 	glob.config = new.config;
 	glob.prog_dic = new.prog_dic;
-	return (prog_dic_run(glob.prog_dic, NULL));
+	return (prog_dic_proc_create(glob.prog_dic));
 }
-*/
 
 int		action_call(action_t *action) {
 	char	*c_str[] = {

@@ -19,9 +19,7 @@ typedef dict_t		prog_dic_t;
 
 prog_dic_t		*prog_dic_new(conf_t *conf);
 void			prog_dic_free(prog_dic_t *prog_dic);
-int				prog_dic_run(prog_dic_t *prog_dic, char *name);
-int				prog_dic_update(prog_dic_t *prog_dic);
-int				prog_dic_kill(prog_dic_t *prog_dic, int signal);
+int				prog_dic_proc_create(prog_dic_t *prog_dic);
 int				prog_dic_status(prog_dic_t *prog_dic);
 prog_dic_t		*prog_dic_reload(prog_dic_t *prog_dic, conf_t *conf);
 
