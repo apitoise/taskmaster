@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 18:02:50 by fcadet            #+#    #+#             */
-/*   Updated: 2023/05/03 10:42:50 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/05/05 11:55:56 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,6 +66,13 @@ int			prog_dic_status(prog_dic_t *prog_dic) {
 	return (ret);
 }
 
+void		prog_dic_kill(prog_dic_t *prog_dic) {
+	uint64_t	i;
+
+	for (i = 0; i < prog_dic->keys->sz; ++i)
+		prog_kill(prog_dic->values->data[i]);
+}
+
 prog_dic_t	*prog_dic_reload(prog_dic_t *prog_dic, conf_t *conf) {
 	prog_dic_t	*new;
 	uint64_t	i;
@@ -79,13 +86,12 @@ prog_dic_t	*prog_dic_reload(prog_dic_t *prog_dic, conf_t *conf) {
 		if (dict_get(new, old_prog->name, (void **)&new_prog)
 			|| prog_cmp(new_prog, old_prog)) {
 			prog_kill(old_prog);
-			return (NULL);
-		}
-		else {
+		} else {
 			while (old_prog->procs->sz) {
 				vec_pop_back(old_prog->procs, (void **)&tmp);
 				if (vec_push_back(new_prog->procs, tmp)) {
 					vec_push_back(old_prog->procs, tmp);
+					prog_dic_kill(new);
 					prog_dic_free(new);
 					return (NULL);
 				}

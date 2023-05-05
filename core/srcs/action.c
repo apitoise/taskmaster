@@ -6,13 +6,13 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 16:31:29 by fcadet            #+#    #+#             */
-/*   Updated: 2023/05/05 08:20:58 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/05/05 12:08:27 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../hdrs/action.h"
 
-int		action_stop(action_t *action) {
+static int		action_stop(action_t *action) {
 	prog_t		*prog;
 	proc_t		*proc;
 	uint64_t	i;
@@ -30,7 +30,7 @@ int		action_stop(action_t *action) {
 	return (0);
 }
 
-int		action_start(action_t *action) {
+static int		action_start(action_t *action) {
 	prog_t		*prog;
 	proc_t		*proc;
 	uint64_t	i;
@@ -54,35 +54,34 @@ int		action_start(action_t *action) {
 	return (0);
 }
 
-int		action_restart(action_t *action) {
+static int		action_restart(action_t *action) {
 	return (action_stop(action)
 		|| action_start(action)
 		? -1 : 0);
 }	
 
-int		action_status(action_t *action) {
+static int		action_status(action_t *action) {
 	if (action->sz != 1)
 		return (-1);
 	return (prog_dic_status(glob.prog_dic) ? -1 : 0);
 }
 
-int		action_exit(action_t *action) {
+static int		action_exit(action_t *action) {
 	if (action->sz != 1)
 		return (-1);
 	clean_exit(NULL, 0);
 	return (0);
 }
 
-int		action_reload(action_t *action) {
+static int		action_reload(action_t *action) {
 	glob_t		new = { 0 };
 	
 	if (action->sz != 1
 		|| !(new.config = config_new(glob.config_path))
-		|| !(new.prog_dic = prog_dic_reload(glob.prog_dic, new.config))) {
+		|| !(new.prog_dic = prog_dic_reload(glob.prog_dic,
+			new.config))) {
 		if (new.config)
 			config_free(new.config);
-		if (new.prog_dic)
-			prog_dic_free(new.prog_dic);
 		return (-1);
 	}
 	prog_dic_free(glob.prog_dic);

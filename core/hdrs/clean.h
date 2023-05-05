@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/24 10:04:27 by fcadet            #+#    #+#             */
-/*   Updated: 2023/05/03 11:59:14 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/05/05 12:09:02 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,9 +16,6 @@
 #include "glob.h"
 
 void	clean_glob(void);
-/*
 void	clean_exit(char *error, int ret);
-void	clean_exit_child(char *error, int ret);
-*/
 
 #endif // CLEAN_H

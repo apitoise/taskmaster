@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 18:06:30 by fcadet            #+#    #+#             */
-/*   Updated: 2023/05/04 09:24:50 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/05/05 12:10:02 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,7 +76,6 @@ typedef struct		map_s {
 prog_t		*prog_new(char *name, dict_t *opts);
 void		prog_free(prog_t *prog);
 int			prog_proc_create(prog_t *prog);
-void		prog_proc_free(prog_t *prog);
 void		prog_kill(prog_t *prog);
 int			prog_status(prog_t *prog);
 int			prog_cmp(prog_t *p1, prog_t *p2);

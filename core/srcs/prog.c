@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 18:00:57 by fcadet            #+#    #+#             */
-/*   Updated: 2023/05/05 08:58:39 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/05/05 12:32:04 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,7 +85,6 @@ void		prog_free(prog_t *prog) {
 
 int			prog_proc_create(prog_t *prog) {
 	uint64_t	i;
-	static char	buff[STD_MAX * 2];
 	proc_t		*new_proc;
 
 	for (i = 0; i < prog->numprocs; ++i) {
@@ -103,47 +102,28 @@ int			prog_proc_create(prog_t *prog) {
 }
 
 void		prog_kill(prog_t *prog) {
+	uint64_t	i;
 	proc_t		*proc;
 
-	while (!vec_pop_back(prog->procs, (void **)&proc))
+	for (i = 0; i < prog->procs->sz; ++i) {
+		proc = prog->procs->data[i];
 		kill(proc->pid, SIGKILL);
+		proc->state = S_STOPPED;
+	}
 }
 
 int			prog_status(prog_t *prog) {
-	uint64_t	i, started = 0,
-				succeed = 0,
-				failed = 0;
-	time_t		timer;
-	proc_t		*proc;
+	char		*state_str[] = {
+		NULL, "Stopping...", "Stopped",
+		NULL, "Starting...", "Started",
+		"Start failed", "Start retry", "Exited",
+	};
+	uint64_t	i;
 
 	printf("%-10s:\n", prog->name);
-	for (i = 0; i < prog->procs->sz; ++i) {
-		proc = (proc_t *)prog->procs->data[i];
-		printf("  %ld. ", i);
-		switch (proc->state) {
-			case S_STOP_WAIT:
-				printf("Stopping...\n");
-				break;
-			case S_STOPPED:
-				printf("Stopped\n");
-				break;
-			case S_START_WAIT:
-				printf("Starting...\n");
-				break;
-			case S_STARTED:
-				printf("Started\n");
-				break;
-			case S_START_FAIL:
-				printf("Failed to start\n");
-				break;
-			case S_RETRY:
-				printf("Start retry\n");
-				break;
-			case S_EXITED:
-				printf("Exited\n");
-				break;
-		}
-	}
+	for (i = 0; i < prog->procs->sz; ++i)
+		printf("  %ld. %s\n", i,
+			state_str[((proc_t *)prog->procs->data[i])->state]);
 	return (0);
 }
 

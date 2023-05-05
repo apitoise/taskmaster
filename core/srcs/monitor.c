@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/03 11:09:27 by fcadet            #+#    #+#             */
-/*   Updated: 2023/05/05 08:55:23 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/05/05 12:29:04 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,6 @@ void		monitor_fn(void) {
 	char			*args[STD_MAX], path[STD_MAX];
 	prog_t			*prog;
 	proc_t			*proc;
-	pid_t			pid_ret;
 	time_t			current;
 
 	if (time(&current) == -1) //need to log error
@@ -65,8 +64,9 @@ void		monitor_fn(void) {
 					kill(proc->pid, prog->stopsignal);
 					proc->state = S_STOP_WAIT;
 					prog->timestamp = current;
+					__attribute__ ((fallthrough));
 				case S_STOP_WAIT: 
-					if (prog->timestamp + prog->stoptime < current)
+					if (prog->timestamp + prog->stoptime < (uint64_t)current)
 						kill(proc->pid, SIGKILL);
 					waitpid(proc->pid, &proc->status, WNOHANG);
 					if (access(path, F_OK))
@@ -94,12 +94,14 @@ void		monitor_fn(void) {
 						prog->timestamp = current;
 						proc->state = S_START_WAIT;
 					}
+					__attribute__ ((fallthrough));
 				case S_START_WAIT:
 					if (waitpid(proc->pid, &proc->status, WNOHANG) == -1
 						|| access(path, F_OK))
 						proc->state = S_RETRY;
-					else if (prog->timestamp + prog->starttime <= current)
+					else if (prog->timestamp + prog->starttime <= (uint64_t)current)
 						proc->state = S_STARTED;
+					__attribute__ ((fallthrough));
 				case S_STARTED: 
 					if (waitpid(proc->pid, &proc->status, WNOHANG) < 0
 						|| access(path, F_OK))
@@ -120,13 +122,13 @@ void		monitor_fn(void) {
 									if (WEXITSTATUS(proc->status)
 										== (uint64_t)prog->exitcodes->data[i])
 										break;
+						__attribute__ ((fallthrough));
 						case RP_ALWAYS:
 							proc->retry = 0;
 							proc->state = S_START;
 						default:
 							break;
 					}
-					break;
 				default:
 					break;
 			}

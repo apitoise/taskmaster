@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/22 20:47:06 by fcadet            #+#    #+#             */
-/*   Updated: 2023/05/04 09:24:54 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/05/05 12:16:28 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,11 +37,9 @@ int			main(int ac, char **av) {
 		clean_exit("Can't load config file", 2);
 	if (!(glob.prog_dic = prog_dic_new(glob.config)))
 		clean_exit("Can't init program's dictionnary", 3);
-	/*
-	if (prog_dic_run(glob.prog_dic, NULL) == -1)
-		clean_exit("Can't fork current program", 4);
-		*/
-	if (!(glob.prompt = prompt_new("> ", monitor_fn, 1000000)))
+	if (prog_dic_proc_create(glob.prog_dic))
+		clean_exit("Can't create processes", 4);
+	if (!(glob.prompt = prompt_new("> ", monitor_fn, 100000)))
 		clean_exit("Can init prompt", 5);
 	while (42) {
 		if (prompt_query(glob.prompt, &cmd))
