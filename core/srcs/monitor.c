@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/03 11:09:27 by fcadet            #+#    #+#             */
-/*   Updated: 2023/05/04 09:31:33 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/05/05 08:55:23 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,10 +78,13 @@ void		monitor_fn(void) {
 						break;
 					} else if (!proc->pid) {
 						umask(prog->umask);
-						if (io_redirect(STDOUT_FILENO, prog->std_out)
-							|| io_redirect(STDERR_FILENO, prog->std_err)
+						if (io_redirect(STDOUT_FILENO,
+								prog->std_out)
+							|| io_redirect(STDERR_FILENO,
+								prog->std_err)
 							|| str_split(prog->cmd, args, STD_MAX)
-							|| execvpe(prog->cmd, args, (char **)prog->env->data)) {
+							|| execvpe(prog->cmd, args,
+								(char **)prog->env->data)) {
 							fclose(stdout);
 							fclose(stdin);
 							clean_glob();

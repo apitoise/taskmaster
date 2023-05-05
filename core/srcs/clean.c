@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/24 10:03:51 by fcadet            #+#    #+#             */
-/*   Updated: 2023/05/03 11:58:45 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/05/05 08:23:05 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,4 @@ static void	clean_fact(char *error, int ret, int is_child) {
 void	clean_exit(char *error, int ret) {
 	clean_fact(error, ret, 0);
 }
-
-
 */

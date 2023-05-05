@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 18:00:57 by fcadet            #+#    #+#             */
-/*   Updated: 2023/05/04 07:49:54 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/05/05 08:58:39 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,55 +83,6 @@ void		prog_free(prog_t *prog) {
 	free(prog);
 }
 
-
-/*
-void		prog_print(prog_t *prog) {
-	uint64_t	i;
-
-	printf("cmd: \"%s\"\n", prog->cmd);
-	printf("autostart: \"%s\"\n", g_map.bools[prog->autostart]);
-	printf("autorestart: \"%s\"\n", g_map.auto_r[prog->autorestart]);
-	printf("umask: %s%04o\n", prog->umask ? "0" : "", prog->umask);
-	printf("stoptime: %lu\n", prog->stoptime);
-	printf("numprocs: \"%lu\"\n", prog->numprocs);
-	printf("starttime: %lu\n", prog->starttime);
-	printf("startretries: %lu\n", prog->startretries);
-	printf("exitcodes: [ ");
-	for (i = 0; i < prog->exitcodes->sz; ++i)
-		printf("%lu%s", (uint64_t)prog->exitcodes->data[i],
-			i + 1 < prog->exitcodes->sz ? ", " : " ");
-	printf("]\n");
-	printf("workingdir: \"%s\"\n", prog->workingdir);
-	printf("stopsignal: ");
-	for (i = 0; i < 7; ++i) {
-		if ((uint64_t)prog->stopsignal == g_map.sigs_v[i]) {
-			printf("%s\n", g_map.sigs_s[i]);
-			break;
-		}
-	}
-	printf("stdout: \"%s\"\n", prog->std_out);
-	printf("stderr: \"%s\"\n", prog->std_err);
-	printf("env: {%s", prog->env->sz ? "\n" : " ");
-	for (i = 0; i < prog->env->sz; ++i)
-		printf("  \"%s\"\n", (char *)prog->env->data[i]);
-	printf("}\n");
-}
-*/
-
-/*
-int			prog_clean_procs(prog_t *prog, int signal) {
-	uint64_t	i;
-
-	if (prog_kill(prog, signal)
-		|| prog_update(prog))
-		return (-1);
-	for (i = 0; i < prog->procs->sz; ++i)
-		free(prog->procs->data[i]);
-	prog->procs->sz = 0;
-	return (0);
-}
-*/
-
 int			prog_proc_create(prog_t *prog) {
 	uint64_t	i;
 	static char	buff[STD_MAX * 2];
@@ -147,55 +98,10 @@ int			prog_proc_create(prog_t *prog) {
 		new_proc->state = prog->autostart
 			? S_START : S_STOPPED;
 		new_proc->retry = 0;
-		/*
-		if ((new_proc->pid = fork()) == -1) {
-			vec_pop_back(prog->procs, NULL);
-			free(new_proc);
-			return (-1);
-		} else if (!new_proc->pid) {
-			umask(prog->umask);
-			if (io_redirect(STDOUT_FILENO, prog->std_out)
-				|| io_redirect(STDERR_FILENO, prog->std_err)
-				|| str_split(prog->cmd, args, STD_MAX)
-				|| execvpe(prog->cmd, args, (char **)prog->env->data)) {
-				sprintf(buff, "Can't run %s", prog->name);
-				fclose(stdout);
-				fclose(stdin);
-				clean_exit_child(buff, 1); // exit code number ?
-			}
-		}
-		*/
 	}
 	return (0);
 }
 
-/*
-int			prog_kill(prog_t *prog, int signal) {
-	uint64_t	i;
-	int			ret = 0;
-	proc_t		*proc;
-
-	for (i = 0; i < prog->procs->sz; ++i) {
-		proc = (proc_t *)prog->procs->data[i];
-		if (proc->pid && kill(proc->pid, signal))
-			ret = -1;
-	}
-	return (ret);
-}
-
-static int	is_succeed(proc_t *proc, vec_t *exitcodes) {
-	uint64_t	i;
-	
-	if (WIFSIGNALED(proc->status))
-		return (0);
-	else if (WIFEXITED(proc->status))
-		for (i = 0; i < exitcodes->sz; ++i)
-			if (WEXITSTATUS(proc->status) == (uint64_t)exitcodes->data[i])
-				return (1);
-	return (0);
-}
-
-// TO DO: Changer l'affichage
 int			prog_status(prog_t *prog) {
 	uint64_t	i, started = 0,
 				succeed = 0,
@@ -203,28 +109,34 @@ int			prog_status(prog_t *prog) {
 	time_t		timer;
 	proc_t		*proc;
 
-	printf("%-10s: ", prog->name);
+	printf("%-10s:\n", prog->name);
 	for (i = 0; i < prog->procs->sz; ++i) {
 		proc = (proc_t *)prog->procs->data[i];
-		if (!proc->pid) {
-			if (is_succeed(proc, prog->exitcodes)) ++succeed;
-			else ++failed;
-			continue ;
+		printf("  %ld. ", i);
+		switch (proc->state) {
+			case S_STOP_WAIT:
+				printf("Stopping...\n");
+				break;
+			case S_STOPPED:
+				printf("Stopped\n");
+				break;
+			case S_START_WAIT:
+				printf("Starting...\n");
+				break;
+			case S_STARTED:
+				printf("Started\n");
+				break;
+			case S_START_FAIL:
+				printf("Failed to start\n");
+				break;
+			case S_RETRY:
+				printf("Start retry\n");
+				break;
+			case S_EXITED:
+				printf("Exited\n");
+				break;
 		}
-		if (time(&timer) == -1)
-			return (-1);
-		if ((uint64_t)(timer)
-			>= prog->starttime + prog->timestamp)
-			++started;
 	}
-	if (!prog->procs->sz)
-		printf("Stopped\n");
-	else if (prog->numprocs == succeed + failed)
-		printf("Terminated (%lu succeed, %lu failed)\n",
-			succeed, failed);
-	else
-		printf("Running %lu/%lu (%lu succeed, %lu failed)\n",
-			started, prog->numprocs, succeed, failed);
 	return (0);
 }
 
@@ -261,4 +173,3 @@ int			prog_cmp(prog_t *p1, prog_t *p2) {
 		return (1);
 	return (0);
 }
-*/
