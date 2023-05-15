@@ -26,6 +26,7 @@ typedef struct		vec_s {
 
 vec_t	*vec_new(uint64_t cap);
 void	vec_free(vec_t *vec);
+int		vec_is_in(vec_t *vec, void *val);
 void	vec_print(vec_t *vec);
 int		vec_get(vec_t *vec, uint64_t idx, void **val);
 int		vec_set(vec_t *vec, uint64_t idx, void *val);

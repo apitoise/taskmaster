@@ -31,6 +31,15 @@ void		vec_free(vec_t *vec) {
 	free(vec);
 }
 
+int			vec_is_in(vec_t *vec, void *val) {
+	uint64_t	i;
+
+	for (i = 0; i < vec->sz; ++i)
+		if (val == vec->data[i])
+			return (1);
+	return (0);
+}
+
 void		vec_print(vec_t *vec) {
 	uint64_t		i;
 

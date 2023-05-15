@@ -46,8 +46,8 @@ static int	str_split(char *str, char **res, uint64_t n_res) {
 }
 
 void		monitor_fn(void) {
-	uint64_t		i, j, k;
-	char			*args[STD_MAX], path[STD_MAX];
+	uint64_t		i, j;
+	char			*args[STD_MAX];
 	prog_t			*prog;
 	proc_t			*proc;
 	time_t			current;
@@ -58,7 +58,6 @@ void		monitor_fn(void) {
 		prog = glob.prog_dic->values->data[i];
 		for (j = 0; j < prog->procs->sz; ++j) {
 			proc = prog->procs->data[j];
-			sprintf(path, "/proc/%d/status", proc->pid);
 			switch (proc->state) {
 				case S_STOP:
 					kill(proc->pid, prog->stopsignal);
@@ -69,7 +68,7 @@ void		monitor_fn(void) {
 					if (prog->timestamp + prog->stoptime < (uint64_t)current)
 						kill(proc->pid, SIGKILL);
 					waitpid(proc->pid, &proc->status, WNOHANG);
-					if (access(path, F_OK))
+					if (access(proc->path, F_OK))
 						proc->state = S_STOPPED;
 					break;
 				case S_START: 
@@ -91,22 +90,23 @@ void		monitor_fn(void) {
 							raise(SIGKILL);
 						}
 					} else {
+						sprintf(proc->path, "/proc/%d/status", proc->pid);
 						prog->timestamp = current;
 						proc->state = S_START_WAIT;
 					}
 					__attribute__ ((fallthrough));
 				case S_START_WAIT:
-					if (waitpid(proc->pid, &proc->status, WNOHANG) == -1
-						|| access(path, F_OK))
-						proc->state = S_RETRY;
-					else if (prog->timestamp + prog->starttime <= (uint64_t)current)
+					if (prog->timestamp + prog->starttime <= (uint64_t)current)
 						proc->state = S_STARTED;
 					__attribute__ ((fallthrough));
-				case S_STARTED: 
-					if (waitpid(proc->pid, &proc->status, WNOHANG) < 0
-						|| access(path, F_OK))
-						proc->state = S_EXITED;
-					break;
+				case S_STARTED:
+					int err;
+					if ((err = waitpid(proc->pid, &proc->status, WNOHANG)) == -1
+						|| access(proc->path, F_OK))
+						proc->state = proc->state == S_STARTED
+							&& WIFEXITED(proc->status)
+							? S_EXITED : S_RETRY;
+					break ;
 				case S_RETRY:
 					if (proc->retry < prog->startretries) {
 						++proc->retry;
@@ -117,11 +117,10 @@ void		monitor_fn(void) {
 				case S_EXITED: 
 					switch (prog->autorestart) {
 						case RP_UNEXP:
-							if (WIFEXITED(proc->status))
-								for (k = 0; k < prog->exitcodes->sz; ++k)
-									if (WEXITSTATUS(proc->status)
-										== (uint64_t)prog->exitcodes->data[i])
-										break;
+							if (WIFEXITED(proc->status)
+								&& vec_is_in(prog->exitcodes,
+								(void *)(uint64_t)WEXITSTATUS(proc->status)))
+								break ;
 						__attribute__ ((fallthrough));
 						case RP_ALWAYS:
 							proc->retry = 0;

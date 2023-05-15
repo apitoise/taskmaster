@@ -39,6 +39,7 @@ typedef enum		restart_pol_e {
 }					restart_pol_t;
 
 typedef struct		proc_s {
+	char			path[PATH_MAX];
 	pid_t			pid;
 	int				status;
 	state_t			state;

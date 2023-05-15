@@ -47,7 +47,7 @@ prog_t			*prog_new(char *name, dict_t *opts) {
 		|| dic_get_unw(opts, "autorestart", (void **)&str, "unexpected", DT_STR)
 		|| (new->autorestart = map_str(NULL, g_map.auto_r, str, 3)) == U_ERROR
 		|| dic_get_unw(opts, "exitcodes", (void **)&ex_cds, NULL, DT_VEC)
-		|| dic_get_unw(opts, "starttime", (void **)&new->starttime, (void *)5, DT_UNB)
+		|| dic_get_unw(opts, "starttime", (void **)&new->starttime, (void *)0, DT_UNB)
 		|| dic_get_unw(opts, "startretries", (void **)&new->startretries, NULL, DT_UNB)
 		|| dic_get_unw(opts, "stopsignal", (void **)&str, "INT", DT_STR)
 		|| (new->stopsignal = map_str(g_map.sigs_v, g_map.sigs_s, str, 7)) == U_ERROR
@@ -97,6 +97,7 @@ int			prog_proc_create(prog_t *prog) {
 		new_proc->state = prog->autostart
 			? S_START : S_STOPPED;
 		new_proc->retry = 0;
+		new_proc->pid = 0;
 	}
 	return (0);
 }
@@ -114,8 +115,8 @@ void		prog_kill(prog_t *prog) {
 
 int			prog_status(prog_t *prog) {
 	char		*state_str[] = {
-		NULL, "Stopping...", "Stopped",
-		NULL, "Starting...", "Started",
+		"Stopping", "Stopping...", "Stopped",
+		"Starting", "Starting...", "Started",
 		"Start failed", "Start retry", "Exited",
 	};
 	uint64_t	i;
