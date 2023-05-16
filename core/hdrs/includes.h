@@ -24,6 +24,7 @@
 #include <sys/wait.h>
 
 #define	STD_MAX	128
+#define LAUNCH_FILE "/tmp/.taskmaster"
 
 #endif // INCLUDES_H
 

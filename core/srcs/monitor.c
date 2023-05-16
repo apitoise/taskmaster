@@ -100,8 +100,7 @@ void		monitor_fn(void) {
 						proc->state = S_STARTED;
 					__attribute__ ((fallthrough));
 				case S_STARTED:
-					int err;
-					if ((err = waitpid(proc->pid, &proc->status, WNOHANG)) == -1
+					if (waitpid(proc->pid, &proc->status, WNOHANG) == -1
 						|| access(proc->path, F_OK))
 						proc->state = proc->state == S_STARTED
 							&& WIFEXITED(proc->status)

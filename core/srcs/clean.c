@@ -24,7 +24,10 @@ void	clean_glob(void) {
 void	clean_exit(char *error, int ret) {
 	if (error)
 		fprintf(stderr, "Error: %s\n", error);
-	prog_dic_kill(glob.prog_dic);
+	if (glob.prog_dic)
+		prog_dic_kill(glob.prog_dic);
 	clean_glob();
+	if (remove(LAUNCH_FILE))
+		fprintf(stderr, "Error: Can not remove launch file.\n");
 	exit(ret);
 }

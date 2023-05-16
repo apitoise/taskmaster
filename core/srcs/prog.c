@@ -16,9 +16,9 @@ static map_t		g_map = {
 	.bools = {	"false", "true" },
 	.auto_r = {	"always", "never", "unexpected" },
 	.sigs_s = {	"ALRM", "HUP", "INT", "PIPE",
-				"TERM",	"USR1", "USR2" },
+				"TERM",	"USR1", "USR2", "QUIT" },
 	.sigs_v = {	SIGALRM, SIGHUP, SIGINT, SIGPIPE,
-				SIGTERM, SIGUSR1, SIGUSR2 },
+				SIGTERM, SIGUSR1, SIGUSR2, SIGQUIT },
 };
 
 static uint64_t		map_str(uint64_t *out, char **in, char *str, uint64_t sz) {
@@ -50,7 +50,7 @@ prog_t			*prog_new(char *name, dict_t *opts) {
 		|| dic_get_unw(opts, "starttime", (void **)&new->starttime, (void *)0, DT_UNB)
 		|| dic_get_unw(opts, "startretries", (void **)&new->startretries, NULL, DT_UNB)
 		|| dic_get_unw(opts, "stopsignal", (void **)&str, "INT", DT_STR)
-		|| (new->stopsignal = map_str(g_map.sigs_v, g_map.sigs_s, str, 7)) == U_ERROR
+		|| (new->stopsignal = map_str(g_map.sigs_v, g_map.sigs_s, str, 8)) == U_ERROR
 		|| dic_get_unw(opts, "stoptime", (void **)&new->stoptime, (void *)10, DT_UNB)
 		|| dic_get_unw(opts, "stdout", (void **)&new->std_out, "./log_out", DT_STR)
 		|| dic_get_unw(opts, "stderr", (void **)&new->std_err, "./log_err", DT_STR)
@@ -108,7 +108,10 @@ void		prog_kill(prog_t *prog) {
 
 	for (i = 0; i < prog->procs->sz; ++i) {
 		proc = prog->procs->data[i];
-		kill(proc->pid, SIGKILL);
+		if (proc->pid) {
+			kill(proc->pid, SIGKILL);
+			waitpid(proc->pid, &proc->status, 0);
+		}
 		proc->state = S_STOPPED;
 	}
 }

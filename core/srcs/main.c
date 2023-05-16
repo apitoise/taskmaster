@@ -26,12 +26,34 @@ Failed
 
 glob_t		glob = { 0 };
 
+__attribute__((constructor))
+static void	create_file(void) {
+	if (!access(LAUNCH_FILE, F_OK)) {
+		fprintf(stderr, "Error: taskmaster already launched\n");
+		exit(1);
+	}
+	if (open(LAUNCH_FILE, O_CREAT, 0666) < 0) {
+		fprintf(stderr, "Error: Can not create launch file.\n");
+		exit(1);
+	}
+}
+
+static void	sighandler(int sig) {
+	(void)sig;
+	glob.stop = 1;
+}
+
 int			main(int ac, char **av) {
 	cmd_t			cmd;
 	action_t		action;
+	int				i, sig[] = { SIGALRM, SIGHUP, SIGINT, SIGPIPE,
+								SIGTERM, SIGUSR1, SIGUSR2, SIGQUIT,
+								SIGTSTP };		
 
 	if (ac != 2)
 		clean_exit("Wrong number of arguments: ./taskmaster [conf file]", 1);
+	for (i = 0; i < 9; ++i)
+		signal(sig[i], sighandler);
 	glob.config_path = av[1];
 	if (!(glob.config = config_new(glob.config_path)))
 		clean_exit("Can't load config file", 2);
@@ -41,9 +63,12 @@ int			main(int ac, char **av) {
 		clean_exit("Can't create processes", 4);
 	if (!(glob.prompt = prompt_new("> ", monitor_fn, 100000)))
 		clean_exit("Can init prompt", 5);
-	while (42) {
-		if (prompt_query(glob.prompt, &cmd))
+	while (!glob.stop) {
+		if (prompt_query(glob.prompt, &cmd)) {
+			if (glob.stop)
+				break ;
 			clean_exit("Can't access terminal", 6);
+		}
 		action.sz = cmd_split(&cmd, action.cmds, 2);
 		if (!action.sz)
 			continue;
