@@ -8,7 +8,7 @@ typedef struct		glob_s {
 	conf_t			*config;
 	prompt_t		*prompt;
 	char			*config_path;
-	int				stop;
+	int				sig;
 }					glob_t;
 
 extern glob_t		glob;

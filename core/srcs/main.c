@@ -39,13 +39,13 @@ static void	create_file(void) {
 }
 
 static void	sighandler(int sig) {
-	(void)sig;
-	glob.stop = 1;
+	glob.sig = sig;
 }
 
 int			main(int ac, char **av) {
 	cmd_t			cmd;
-	action_t		action;
+	action_t		action, act_reload = { .sz = 1,
+											.cmds = { "reload", NULL }};
 	int				i, sig[] = { SIGALRM, SIGHUP, SIGINT, SIGPIPE,
 								SIGTERM, SIGUSR1, SIGUSR2, SIGQUIT,
 								SIGTSTP };		
@@ -63,11 +63,20 @@ int			main(int ac, char **av) {
 		clean_exit("Can't create processes", 4);
 	if (!(glob.prompt = prompt_new("> ", monitor_fn, 100000)))
 		clean_exit("Can init prompt", 5);
-	while (!glob.stop) {
+	while (!glob.sig) {
 		if (prompt_query(glob.prompt, &cmd)) {
-			if (glob.stop)
-				break ;
-			clean_exit("Can't access terminal", 6);
+			switch (glob.sig) {
+				case 0:
+					clean_exit("Can't access terminal", 6);
+					break ;
+				case SIGHUP:
+					action_call(&act_reload);
+					glob.sig = 0;
+					printf("\n");
+				__attribute__((fallthrough));
+				default:
+					continue ;
+			}
 		}
 		action.sz = cmd_split(&cmd, action.cmds, 2);
 		if (!action.sz)
