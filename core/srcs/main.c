@@ -47,13 +47,13 @@ int			main(int ac, char **av) {
 	action_t		action, act_reload = { .sz = 1,
 											.cmds = { "reload", NULL }};
 	int				i, sig[] = { SIGALRM, SIGHUP, SIGINT, SIGPIPE,
-								SIGTERM, SIGUSR1, SIGUSR2, SIGQUIT,
-								SIGTSTP };		
+								SIGTERM, SIGUSR1, SIGUSR2, SIGQUIT };		
 
 	if (ac != 2)
 		clean_exit("Wrong number of arguments: ./taskmaster [conf file]", 1);
-	for (i = 0; i < 9; ++i)
+	for (i = 0; i < 8; ++i)
 		signal(sig[i], sighandler);
+	signal(SIGTSTP, SIG_IGN);
 	glob.config_path = av[1];
 	if (!(glob.config = config_new(glob.config_path)))
 		clean_exit("Can't load config file", 2);

@@ -120,7 +120,8 @@ void		monitor_fn(void) {
 								&& vec_is_in(prog->exitcodes,
 								(void *)(uint64_t)WEXITSTATUS(proc->status)))
 								break ;
-						__attribute__ ((fallthrough));
+							proc->state = S_RETRY;
+							break ;
 						case RP_ALWAYS:
 							proc->retry = 0;
 							proc->state = S_START;
