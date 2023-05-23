@@ -31,5 +31,6 @@ void	clean_exit(char *error, int ret) {
 	clean_glob();
 	if (remove(LAUNCH_FILE))
 		fprintf(stderr, "Error: Can not remove launch file.\n");
+	log_info(NULL, "supervisor exited");
 	exit(ret);
 }

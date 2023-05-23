@@ -14,6 +14,7 @@
 #define CLEAN_H
 
 #include "glob.h"
+#include "log.h"
 
 void	clean_glob(void);
 void	clean_exit(char *error, int ret);

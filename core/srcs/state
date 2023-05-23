@@ -1,0 +1,42 @@
+action.c:		proc->state = (proc->state != S_STARTED
+action.c:			&& proc->state != S_START_WAIT)
+action.c:		proc->retry = 0;
+action.c:		if (proc->state == S_START_WAIT
+action.c:			|| proc->state == S_STARTED)
+action.c:		else if (proc->state == S_STOP_WAIT) {
+action.c:			kill(proc->pid, SIGKILL);
+action.c:			waitpid(proc->pid, &proc->status, WNOHANG);
+action.c:		proc->state = S_START;
+monitor.c:			switch (proc->state) {
+monitor.c:					kill(proc->pid, prog->stopsignal);
+monitor.c:					proc->state = S_STOP_WAIT;
+monitor.c:						kill(proc->pid, SIGKILL);
+monitor.c:					waitpid(proc->pid, &proc->status, WNOHANG);
+monitor.c:					if (access(proc->path, F_OK))
+monitor.c:						proc->state = S_STOPPED;
+monitor.c:					if ((proc->pid = fork()) == -1) {
+monitor.c:						proc->state = S_RETRY;	
+monitor.c:					} else if (!proc->pid) {
+monitor.c:						sprintf(proc->path, "/proc/%d/status", proc->pid);
+monitor.c:						proc->state = S_START_WAIT;
+monitor.c:						proc->state = S_STARTED;
+monitor.c:					if (waitpid(proc->pid, &proc->status, WNOHANG) == -1
+monitor.c:						|| access(proc->path, F_OK))
+monitor.c:						proc->state = proc->state == S_STARTED
+monitor.c:							&& WIFEXITED(proc->status)
+monitor.c:					if (proc->retry < prog->startretries) {
+monitor.c:						++proc->retry;
+monitor.c:						proc->state = S_START;
+monitor.c:						proc->state = S_START_FAIL;
+monitor.c:							if (WIFEXITED(proc->status)
+monitor.c:								(void *)(uint64_t)WEXITSTATUS(proc->status)))
+monitor.c:							proc->state = S_RETRY;
+monitor.c:							proc->retry = 0;
+monitor.c:							proc->state = S_START;
+prog.c:		new_proc->state = prog->autostart
+prog.c:		new_proc->retry = 0;
+prog.c:		new_proc->pid = 0;
+prog.c:		if (proc->pid) {
+prog.c:			kill(proc->pid, SIGKILL);
+prog.c:			waitpid(proc->pid, &proc->status, 0);
+prog.c:		proc->state = S_STOPPED;

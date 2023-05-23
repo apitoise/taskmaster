@@ -11,6 +11,7 @@ SRCS	=	prompt/srcs/cmd.c \
 		core/srcs/prog_dic.c \
 		core/srcs/unwrap.c \
 		core/srcs/monitor.c \
+		core/srcs/log.c \
 		config/config.c \
 		vector/vector.c \
 		dict/dict.c

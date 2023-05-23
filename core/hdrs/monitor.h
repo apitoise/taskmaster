@@ -17,6 +17,7 @@
 #include "prog_dic.h"
 #include "glob.h"
 #include "clean.h"
+#include "log.h"
 
 void		monitor_fn(void);
 

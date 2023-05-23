@@ -12,7 +12,7 @@
 
 #include "../hdrs/action.h"
 
-static int		action_stop(action_t *action) {
+static int		action_stop_log(action_t *action, uint8_t restart) {
 	prog_t		*prog;
 	proc_t		*proc;
 	uint64_t	i;
@@ -21,16 +21,27 @@ static int		action_stop(action_t *action) {
 		|| dict_get(glob.prog_dic, action->cmds[1],
 		(void **)&prog))
 		return (-1);
+	if (!restart)
+		log_info(prog, "STOP");
 	for (i = 0; i < prog->procs->sz; ++i) {
 		proc = prog->procs->data[i];
-		proc->state = (proc->state != S_STARTED
-			&& proc->state != S_START_WAIT)
-			? S_STOPPED : S_STOP;
+		if (proc->state == S_STOPPED)
+			continue ;
+		else if (proc->state != S_STARTED
+			&& proc->state != S_START_WAIT) {
+			proc->state = S_STOPPED; 
+			log_state(prog, i);
+		} else
+			proc->state = S_STOP;
 	}
 	return (0);
 }
 
-static int		action_start(action_t *action) {
+static int		action_stop(action_t *action) {
+	return (action_stop_log(action, 0));
+}
+
+static int		action_start_log(action_t *action, uint8_t restart) {
 	prog_t		*prog;
 	proc_t		*proc;
 	uint64_t	i;
@@ -39,6 +50,10 @@ static int		action_start(action_t *action) {
 		|| dict_get(glob.prog_dic, action->cmds[1],
 		(void **)&prog))
 		return (-1);
+	if (restart)
+		log_info(prog, "RESTART");
+	else
+		log_info(prog, "START");
 	for (i = 0; i < prog->procs->sz; ++i) {
 		proc = prog->procs->data[i];
 		proc->retry = 0;
@@ -54,19 +69,25 @@ static int		action_start(action_t *action) {
 	return (0);
 }
 
+static int		action_start(action_t *action) {
+	return (action_start_log(action, 0));
+}
+
 static int		action_restart(action_t *action) {
-	return (action_stop(action)
-		|| action_start(action)
+	return (action_stop_log(action, 1)
+		|| action_start_log(action, 1)
 		? -1 : 0);
 }	
 
 static int		action_status(action_t *action) {
+	log_info(NULL, "STATUS");
 	if (action->sz != 1)
 		return (-1);
 	return (prog_dic_status(glob.prog_dic) ? -1 : 0);
 }
 
 static int		action_exit(action_t *action) {
+	log_info(NULL, "EXIT");
 	if (action->sz != 1)
 		return (-1);
 	clean_exit(NULL, 0);
@@ -76,6 +97,7 @@ static int		action_exit(action_t *action) {
 static int		action_reload(action_t *action) {
 	glob_t		new = { 0 };
 	
+	log_info(NULL, "RELOAD");
 	if (action->sz != 1
 		|| !(new.config = config_new(glob.config_path))
 		|| !(new.prog_dic = prog_dic_reload(glob.prog_dic,

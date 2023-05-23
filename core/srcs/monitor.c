@@ -62,18 +62,22 @@ void		monitor_fn(void) {
 				case S_STOP:
 					kill(proc->pid, prog->stopsignal);
 					proc->state = S_STOP_WAIT;
+					log_state(prog, i);
 					prog->timestamp = current;
 					__attribute__ ((fallthrough));
 				case S_STOP_WAIT: 
 					if (prog->timestamp + prog->stoptime < (uint64_t)current)
 						kill(proc->pid, SIGKILL);
 					waitpid(proc->pid, &proc->status, WNOHANG);
-					if (access(proc->path, F_OK))
+					if (access(proc->path, F_OK)) {
 						proc->state = S_STOPPED;
+						log_state(prog, i);
+					}
 					break;
 				case S_START: 
 					if ((proc->pid = fork()) == -1) {
 						proc->state = S_RETRY;	
+						log_state(prog, i);
 						break;
 					} else if (!proc->pid) {
 						umask(prog->umask);
@@ -93,25 +97,32 @@ void		monitor_fn(void) {
 						sprintf(proc->path, "/proc/%d/status", proc->pid);
 						prog->timestamp = current;
 						proc->state = S_START_WAIT;
+						log_state(prog, i);
 					}
 					__attribute__ ((fallthrough));
 				case S_START_WAIT:
-					if (prog->timestamp + prog->starttime <= (uint64_t)current)
+					if (prog->timestamp + prog->starttime <= (uint64_t)current) {
 						proc->state = S_STARTED;
+						log_state(prog, i);
+					}
 					__attribute__ ((fallthrough));
 				case S_STARTED:
 					if (waitpid(proc->pid, &proc->status, WNOHANG) == -1
-						|| access(proc->path, F_OK))
-						proc->state = proc->state == S_STARTED
-							&& WIFEXITED(proc->status)
-							? S_EXITED : S_RETRY;
+						|| access(proc->path, F_OK)) {
+							proc->state = proc->state == S_STARTED
+								&& WIFEXITED(proc->status)
+								? S_EXITED : S_RETRY;
+							log_state(prog, i);
+						}
 					break ;
 				case S_RETRY:
 					if (proc->retry < prog->startretries) {
 						++proc->retry;
 						proc->state = S_START;
-					} else
+					} else {
 						proc->state = S_START_FAIL;
+						log_state(prog, i);
+					}
 					break;
 				case S_EXITED: 
 					switch (prog->autorestart) {
@@ -121,6 +132,7 @@ void		monitor_fn(void) {
 								(void *)(uint64_t)WEXITSTATUS(proc->status)))
 								break ;
 							proc->state = S_RETRY;
+							log_state(prog, i);
 							break ;
 						case RP_ALWAYS:
 							proc->retry = 0;

@@ -14,6 +14,7 @@
 #define ACTION_H
 
 #include "clean.h"
+#include "log.h"
 
 #define ACT_NB		6
 
