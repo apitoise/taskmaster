@@ -43,6 +43,7 @@ static void	sighandler(int sig) {
 }
 
 int			main(int ac, char **av) {
+	char			error[STD_MAX];
 	cmd_t			cmd;
 	action_t		action, act_reload = { .sz = 1,
 											.cmds = { "reload", NULL }};
@@ -84,8 +85,11 @@ int			main(int ac, char **av) {
 		action.sz = cmd_split(&cmd, action.cmds, 8);
 		if (!action.sz)
 			continue;
-		if (action_call(&action))
+		if (action_call(&action)) {
+			snprintf(error, STD_MAX, "%s: Command failed", *action.cmds);
+			log_error(NULL, 0, error);
 			fprintf(stderr, "%s command failed\n", *action.cmds);
+		}
 	}
 	clean_exit(NULL, 0);
 }

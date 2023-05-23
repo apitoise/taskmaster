@@ -27,11 +27,19 @@ static char		*log_time(void) {
 
 }
 
-
+void	log_error(prog_t *prog, uint64_t proc_i, char *err) {
+	if (prog)
+		fprintf(glob.log_file, "[%s][ERROR] - %s (%lu/%lu): %s\n",
+			log_time(), prog->name, proc_i + 1, prog->procs->sz, err);
+	else
+		fprintf(glob.log_file, "[%s][ERROR] - Taskmaster: %s\n", log_time(), err);
+	fflush(glob.log_file);
+}
 
 void	log_info(prog_t *prog, char *info) {
 		fprintf(glob.log_file, "[%s][INFO] - %s: %s\n",
 			log_time(), prog ? prog->name : "Taskmaster", info);
+	fflush(glob.log_file);
 }
 
 void	log_state(prog_t *prog, uint64_t proc_i) {
@@ -42,11 +50,12 @@ void	log_state(prog_t *prog, uint64_t proc_i) {
 		"Start failed", "Start retry", "Exited" };
 
 	if (proc->state == S_RETRY)
-		fprintf(glob.log_file, "[%s][STATE] - %s %lu/%lu: %s %lu/%lu\n",
-			log_time(), prog->name, proc_i, prog->procs->sz,
+		fprintf(glob.log_file, "[%s][STATE] - %s (%lu/%lu): %s %lu/%lu\n",
+			log_time(), prog->name, proc_i + 1, prog->procs->sz,
 			state_str[proc->state], proc->retry, prog->startretries);
 	else
-		fprintf(glob.log_file, "[%s][STATE] - %s %lu/%lu: %s\n",
-			log_time(), prog->name, proc_i, prog->procs->sz,
+		fprintf(glob.log_file, "[%s][STATE] - %s (%lu/%lu): %s\n",
+			log_time(), prog->name, proc_i + 1, prog->procs->sz,
 			state_str[proc->state]);
+	fflush(glob.log_file);
 }

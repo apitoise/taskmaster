@@ -16,7 +16,8 @@ SRCS	=	prompt/srcs/cmd.c \
 		vector/vector.c \
 		dict/dict.c
 LOGS	=	./log_out \
-		./log_err
+		./log_err \
+		./log.txt
 OBJS	=	$(SRCS:.c=.o)
 CC	=	gcc
 CFLAGS	=	-Wall -Wextra -Werror

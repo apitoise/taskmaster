@@ -52,8 +52,10 @@ void		monitor_fn(void) {
 	proc_t			*proc;
 	time_t			current;
 
-	if (time(&current) == -1) //need to log error
+	if (time(&current) == -1) {
+		log_error(NULL, 0, "Can't get time");
 		return;
+	}
 	for (i = 0; i < glob.prog_dic->keys->sz; ++i) {
 		prog = glob.prog_dic->values->data[i];
 		for (j = 0; j < prog->procs->sz; ++j) {
@@ -62,7 +64,7 @@ void		monitor_fn(void) {
 				case S_STOP:
 					kill(proc->pid, prog->stopsignal);
 					proc->state = S_STOP_WAIT;
-					log_state(prog, i);
+					log_state(prog, j);
 					prog->timestamp = current;
 					__attribute__ ((fallthrough));
 				case S_STOP_WAIT: 
@@ -71,13 +73,14 @@ void		monitor_fn(void) {
 					waitpid(proc->pid, &proc->status, WNOHANG);
 					if (access(proc->path, F_OK)) {
 						proc->state = S_STOPPED;
-						log_state(prog, i);
+						log_state(prog, j);
 					}
 					break;
 				case S_START: 
 					if ((proc->pid = fork()) == -1) {
+						log_error(prog, j, "Fork failed");
 						proc->state = S_RETRY;	
-						log_state(prog, i);
+						log_state(prog, j);
 						break;
 					} else if (!proc->pid) {
 						umask(prog->umask);
@@ -97,13 +100,13 @@ void		monitor_fn(void) {
 						sprintf(proc->path, "/proc/%d/status", proc->pid);
 						prog->timestamp = current;
 						proc->state = S_START_WAIT;
-						log_state(prog, i);
+						log_state(prog, j);
 					}
 					__attribute__ ((fallthrough));
 				case S_START_WAIT:
 					if (prog->timestamp + prog->starttime <= (uint64_t)current) {
 						proc->state = S_STARTED;
-						log_state(prog, i);
+						log_state(prog, j);
 					}
 					__attribute__ ((fallthrough));
 				case S_STARTED:
@@ -112,7 +115,7 @@ void		monitor_fn(void) {
 							proc->state = proc->state == S_STARTED
 								&& WIFEXITED(proc->status)
 								? S_EXITED : S_RETRY;
-							log_state(prog, i);
+							log_state(prog, j);
 						}
 					break ;
 				case S_RETRY:
@@ -121,7 +124,7 @@ void		monitor_fn(void) {
 						proc->state = S_START;
 					} else {
 						proc->state = S_START_FAIL;
-						log_state(prog, i);
+						log_state(prog, j);
 					}
 					break;
 				case S_EXITED: 
@@ -132,7 +135,7 @@ void		monitor_fn(void) {
 								(void *)(uint64_t)WEXITSTATUS(proc->status)))
 								break ;
 							proc->state = S_RETRY;
-							log_state(prog, i);
+							log_state(prog, j);
 							break ;
 						case RP_ALWAYS:
 							proc->retry = 0;
