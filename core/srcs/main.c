@@ -6,18 +6,12 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/22 20:47:06 by fcadet            #+#    #+#             */
-/*   Updated: 2023/05/05 12:16:28 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/05/23 20:10:13 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../hdrs/action.h"
 #include "../hdrs/monitor.h"
-
-/*
-Running x/y (x Failed, x Stopped)
-Stopped
-Failed
-*/
 
 // TODO
 // TERM RESTORATION
@@ -45,10 +39,14 @@ static void	sighandler(int sig) {
 int			main(int ac, char **av) {
 	char			error[STD_MAX];
 	cmd_t			cmd;
-	action_t		action, act_reload = { .sz = 1,
-											.cmds = { "reload", NULL }};
-	int				i, sig[] = { SIGALRM, SIGHUP, SIGINT, SIGPIPE,
-								SIGTERM, SIGUSR1, SIGUSR2, SIGQUIT };		
+	action_t		action, act_reload = {
+		.sz = 1,
+		.cmds = { "reload", NULL },
+	};
+	int				i, sig[] = {
+		SIGALRM, SIGHUP, SIGINT, SIGPIPE,
+		SIGTERM, SIGUSR1, SIGUSR2, SIGQUIT,
+	};		
 
 	if (ac != 2)
 		clean_exit("Wrong number of arguments: ./taskmaster [conf file]", 1);

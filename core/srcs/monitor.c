@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/05/03 11:09:27 by fcadet            #+#    #+#             */
-/*   Updated: 2023/05/05 12:29:04 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/05/23 20:27:14 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,19 +104,24 @@ void		monitor_fn(void) {
 					}
 					__attribute__ ((fallthrough));
 				case S_START_WAIT:
-					if (prog->timestamp + prog->starttime <= (uint64_t)current) {
-						proc->state = S_STARTED;
-						log_state(prog, j);
+					if (prog->timestamp + prog->starttime > (uint64_t)current) {
+						if (waitpid(proc->pid, &proc->status, WNOHANG) == -1
+							|| access(proc->path, F_OK)) {
+							proc->state = S_RETRY;
+							log_state(prog, j);
+						}
+						break;
 					}
+					proc->state = S_STARTED;
+					log_state(prog, j);
 					__attribute__ ((fallthrough));
 				case S_STARTED:
 					if (waitpid(proc->pid, &proc->status, WNOHANG) == -1
 						|| access(proc->path, F_OK)) {
-							proc->state = proc->state == S_STARTED
-								&& WIFEXITED(proc->status)
-								? S_EXITED : S_RETRY;
-							log_state(prog, j);
-						}
+						proc->state = WIFEXITED(proc->status)
+							? S_EXITED : S_RETRY;
+						log_state(prog, j);
+					}
 					break ;
 				case S_RETRY:
 					if (proc->retry < prog->startretries) {
