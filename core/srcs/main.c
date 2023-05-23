@@ -55,19 +55,21 @@ int			main(int ac, char **av) {
 		signal(sig[i], sighandler);
 	signal(SIGTSTP, SIG_IGN);
 	glob.config_path = av[1];
+	if (!(glob.log_file = fopen("log.txt", "a")))
+		clean_exit("Can't open log.txt", 2);
 	if (!(glob.config = config_new(glob.config_path)))
-		clean_exit("Can't load config file", 2);
+		clean_exit("Can't load config file", 3);
 	if (!(glob.prog_dic = prog_dic_new(glob.config)))
-		clean_exit("Can't init program's dictionnary", 3);
+		clean_exit("Can't init program's dictionnary", 4);
 	if (prog_dic_proc_create(glob.prog_dic))
-		clean_exit("Can't create processes", 4);
+		clean_exit("Can't create processes", 5);
 	if (!(glob.prompt = prompt_new("> ", monitor_fn, 100000)))
-		clean_exit("Can init prompt", 5);
+		clean_exit("Can init prompt", 6);
 	while (!glob.sig) {
 		if (prompt_query(glob.prompt, &cmd)) {
 			switch (glob.sig) {
 				case 0:
-					clean_exit("Can't access terminal", 6);
+					clean_exit("Can't access terminal", 7);
 					break ;
 				case SIGHUP:
 					action_call(&act_reload);
@@ -78,7 +80,7 @@ int			main(int ac, char **av) {
 					continue ;
 			}
 		}
-		action.sz = cmd_split(&cmd, action.cmds, 2);
+		action.sz = cmd_split(&cmd, action.cmds, 8);
 		if (!action.sz)
 			continue;
 		if (action_call(&action))

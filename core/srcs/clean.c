@@ -26,6 +26,8 @@ void	clean_exit(char *error, int ret) {
 		fprintf(stderr, "Error: %s\n", error);
 	if (glob.prog_dic)
 		prog_dic_kill(glob.prog_dic);
+	if (glob.log_file)
+		fclose(glob.log_file);
 	clean_glob();
 	if (remove(LAUNCH_FILE))
 		fprintf(stderr, "Error: Can not remove launch file.\n");

@@ -9,6 +9,7 @@ typedef struct		glob_s {
 	prompt_t		*prompt;
 	char			*config_path;
 	int				sig;
+	FILE			*log_file;
 }					glob_t;
 
 extern glob_t		glob;
