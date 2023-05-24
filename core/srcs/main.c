@@ -6,17 +6,12 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/22 20:47:06 by fcadet            #+#    #+#             */
-/*   Updated: 2023/05/23 20:10:13 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/05/24 10:47:03 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../hdrs/action.h"
 #include "../hdrs/monitor.h"
-
-// TODO
-// TERM RESTORATION
-// function error handling
-// global accessors
 
 glob_t		glob = { 0 };
 
