@@ -49,11 +49,13 @@ void	log_state(prog_t *prog, uint64_t proc_i) {
 		"Starting", "Starting...", "Started",
 		"Start failed", "Start retry", "Exited" };
 
-	if (proc->state == S_RETRY)
+	if (proc->state == S_RETRY) {
+		if (proc->retry == prog->startretries)
+			return ;
 		fprintf(glob.log_file, "[%s][STATE] - %s (%lu/%lu): %s %lu/%lu\n",
 			log_time(), prog->name, proc_i + 1, prog->procs->sz,
-			state_str[proc->state], proc->retry, prog->startretries);
-	else
+			state_str[proc->state], proc->retry + 1, prog->startretries);
+	} else
 		fprintf(glob.log_file, "[%s][STATE] - %s (%lu/%lu): %s\n",
 			log_time(), prog->name, proc_i + 1, prog->procs->sz,
 			state_str[proc->state]);
