@@ -29,8 +29,10 @@ void	clean_exit(char *error, int ret) {
 	if (glob.log_file) {
 		if (error)
 			log_error(NULL, 0, "Fatal error");
+		else if (ret < 0)
+			log_info(NULL, "Interrupted by signal");
 		else
-			log_info(NULL, "supervisor exited");
+			log_info(NULL, "Supervisor exited");
 		fclose(glob.log_file);
 	}
 	clean_glob();

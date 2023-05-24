@@ -64,7 +64,7 @@ int			main(int ac, char **av) {
 		clean_exit("Can't create processes", 5);
 	if (!(glob.prompt = prompt_new("> ", monitor_fn, 100000)))
 		clean_exit("Can init prompt", 6);
-	log_info(NULL, "supervisor started");
+	log_info(NULL, "Supervisor started");
 	while (!glob.sig) {
 		if (prompt_query(glob.prompt, &cmd)) {
 			switch (glob.sig) {
@@ -89,5 +89,5 @@ int			main(int ac, char **av) {
 			fprintf(stderr, "%s command failed\n", *action.cmds);
 		}
 	}
-	clean_exit(NULL, 0);
+	clean_exit(NULL, -1);
 }
