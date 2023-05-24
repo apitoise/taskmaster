@@ -4,4 +4,5 @@ taskmaster
 out.txt
 log_err
 log_out
+log.txt
 test.txt
