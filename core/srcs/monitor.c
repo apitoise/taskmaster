@@ -118,8 +118,12 @@ void		monitor_fn(void) {
 				case S_STARTED:
 					if (waitpid(proc->pid, &proc->status, WNOHANG) == -1
 						|| access(proc->path, F_OK)) {
-						proc->state = WIFEXITED(proc->status)
-							? S_EXITED : S_RETRY;
+						if (WIFEXITED(proc->status)) {
+							proc->state = S_EXITED;
+							proc->bad_code = !vec_is_in(prog->exitcodes,
+								(void *)(uint64_t)WEXITSTATUS(proc->status));
+						} else
+							proc->state = S_RETRY;
 						log_state(prog, j);
 					}
 					break ;
@@ -135,9 +139,7 @@ void		monitor_fn(void) {
 				case S_EXITED: 
 					switch (prog->autorestart) {
 						case RP_UNEXP:
-							if (WIFEXITED(proc->status)
-								&& vec_is_in(prog->exitcodes,
-								(void *)(uint64_t)WEXITSTATUS(proc->status)))
+							if (!proc->bad_code)
 								break ;
 							proc->state = S_RETRY;
 							log_state(prog, j);

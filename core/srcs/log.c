@@ -56,8 +56,10 @@ void	log_state(prog_t *prog, uint64_t proc_i) {
 			log_time(), prog->name, proc_i + 1, prog->procs->sz,
 			state_str[proc->state], proc->retry + 1, prog->startretries);
 	} else
-		fprintf(glob.log_file, "[%s][STATE] - %s (%lu/%lu): %s\n",
+		fprintf(glob.log_file, "[%s][STATE] - %s (%lu/%lu): %s %s\n",
 			log_time(), prog->name, proc_i + 1, prog->procs->sz,
-			state_str[proc->state]);
+			state_str[proc->state],
+			(proc->state == S_EXITED && proc->bad_code)
+			? "(with bad exit code)" : "");
 	fflush(glob.log_file);
 }
