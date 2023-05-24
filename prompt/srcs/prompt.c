@@ -6,7 +6,7 @@
 /*   By: herrfalco <fcadet@student.42.fr>           +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/27 11:58:05 by herrfalco         #+#    #+#             */
-/*   Updated: 2023/04/28 20:13:18 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/05/24 10:31:56 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -126,6 +126,8 @@ static int		handle_spe_char(prompt_t *prompt, char *buff) {
 	switch (buff[0]) {
 		case '\x1b':
 			return (handle_esc(prompt, buff));
+		case '\x9':
+			return (1);
 		case '\x1':
 			if (term_set_cur(prompt->cur_pos, D_BW))
 				return (-1);
