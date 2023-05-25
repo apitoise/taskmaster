@@ -97,12 +97,8 @@ void		monitor_fn(void) {
 							|| str_split(prog->cmd, args, STD_MAX)
 							|| (*prog->workingdir && chdir(prog->workingdir))
 							|| execvpe(prog->cmd, args,
-								(char **)prog->env->data)) {
-							fclose(stdout);
-							fclose(stdin);
-							clean_glob();
-							raise(SIGKILL);
-						}
+								(char **)prog->env->data))
+							clean_exit_child();
 					} else {
 						sprintf(proc->path, "/proc/%d/status", proc->pid);
 						prog->timestamp = current;

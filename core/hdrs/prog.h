@@ -16,7 +16,6 @@
 #include "unwrap.h"
 
 void	clean_exit(char *error, int ret);
-void	clean_exit_child(char *error, int ret);
 
 typedef int			(*cmp_fn_t)(void *, void *);
 

@@ -21,6 +21,18 @@ void	clean_glob(void) {
 		prompt_free(glob.prompt);
 }
 
+void	clean_exit_child(void) {
+	fclose(stdout);
+	fclose(stdin);
+	fclose(stderr);
+	if (glob.prog_dic)
+		prog_dic_kill(glob.prog_dic);
+	if (glob.log_file)
+		fclose(glob.log_file);
+	clean_glob();
+	raise(SIGKILL);
+}
+
 void	clean_exit(char *error, int ret) {
 	if (error)
 		fprintf(stderr, "Error: %s\n", error);

@@ -18,5 +18,6 @@
 
 void	clean_glob(void);
 void	clean_exit(char *error, int ret);
+void	clean_exit_child(void);
 
 #endif // CLEAN_H
