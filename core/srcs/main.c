@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/22 20:47:06 by fcadet            #+#    #+#             */
-/*   Updated: 2023/05/24 10:47:03 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/05/25 17:09:56 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,14 +17,25 @@ glob_t		glob = { 0 };
 
 __attribute__((constructor))
 static void	create_file(void) {
+	FILE	*lfile;
+	pid_t	pid;
+
 	if (!access(LAUNCH_FILE, F_OK)) {
-		fprintf(stderr, "Error: taskmaster already launched\n");
-		exit(1);
+		if (!(lfile = fopen(LAUNCH_FILE, "r"))) {
+			fprintf(stderr, "Error: Can not open launch file.\n");
+			exit(1);
+		}
+		if (fscanf(lfile, "%7d", &pid) == 1 && !kill(pid, 0)) {
+			fprintf(stderr, "Error: taskmaster already launched\n");
+			exit(2);
+		}
+		fclose(lfile);
 	}
-	if (open(LAUNCH_FILE, O_CREAT, 0666) < 0) {
+	if (!(lfile = fopen(LAUNCH_FILE, "w"))) {
 		fprintf(stderr, "Error: Can not create launch file.\n");
-		exit(1);
+		exit(3);
 	}
+	fprintf(lfile, "%d", getpid());
 }
 
 static void	sighandler(int sig) {
