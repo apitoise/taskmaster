@@ -15,14 +15,13 @@
 #include "../hdrs/glob.h"
 
 static char		*log_time(void) {
-	time_t		tm;
-	char		*str;
-	uint64_t	i;
+	struct tm	*time_info;
+	time_t		current;
+	static char	str[STD_MAX];
 
-	time(&tm);
-	str = ctime(&tm);
-	for (i = 0; str[i] && str[i] != '\n'; ++i);
-	str[i] = '\0';
+	time(&current);
+	time_info = localtime(&current);
+	strftime(str, STD_MAX, "%Y-%m-%d %H:%M:%S", time_info);
 	return (str);
 
 }

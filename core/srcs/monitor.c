@@ -95,6 +95,7 @@ void		monitor_fn(void) {
 							|| io_redirect(STDERR_FILENO,
 								prog->std_err)
 							|| str_split(prog->cmd, args, STD_MAX)
+							|| (*prog->workingdir && chdir(prog->workingdir))
 							|| execvpe(prog->cmd, args,
 								(char **)prog->env->data)) {
 							fclose(stdout);
