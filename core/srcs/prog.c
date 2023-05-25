@@ -98,6 +98,7 @@ int			prog_proc_create(prog_t *prog) {
 			? S_START : S_STOPPED;
 		new_proc->retry = 0;
 		new_proc->pid = 0;
+		new_proc->restart = 0;
 	}
 	return (0);
 }

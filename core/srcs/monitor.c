@@ -76,6 +76,12 @@ void		monitor_fn(void) {
 						log_state(prog, j);
 					}
 					break;
+				case S_STOPPED:
+					if (!proc->restart)
+						break ;
+					proc->state = S_START;
+					proc->restart = 0;
+					__attribute__ ((fallthrough));
 				case S_START: 
 					if ((proc->pid = fork()) == -1) {
 						log_error(prog, j, "Fork failed");

@@ -21,10 +21,10 @@ static int		action_stop_log(action_t *action, uint8_t restart) {
 		|| dict_get(glob.prog_dic, action->cmds[1],
 		(void **)&prog))
 		return (-1);
-	if (!restart)
-		log_info(prog, "STOP");
+	log_info(prog, restart ? "RESTART" : "STOP");
 	for (i = 0; i < prog->procs->sz; ++i) {
 		proc = prog->procs->data[i];
+		proc->restart = restart;
 		if (proc->state == S_STOPPED)
 			continue ;
 		else if (proc->state != S_STARTED
@@ -41,7 +41,7 @@ static int		action_stop(action_t *action) {
 	return (action_stop_log(action, 0));
 }
 
-static int		action_start_log(action_t *action, uint8_t restart) {
+static int		action_start(action_t *action) {
 	prog_t		*prog;
 	proc_t		*proc;
 	uint64_t	i;
@@ -50,10 +50,7 @@ static int		action_start_log(action_t *action, uint8_t restart) {
 		|| dict_get(glob.prog_dic, action->cmds[1],
 		(void **)&prog))
 		return (-1);
-	if (restart)
-		log_info(prog, "RESTART");
-	else
-		log_info(prog, "START");
+	log_info(prog, "START");
 	for (i = 0; i < prog->procs->sz; ++i) {
 		proc = prog->procs->data[i];
 		proc->retry = 0;
@@ -69,14 +66,8 @@ static int		action_start_log(action_t *action, uint8_t restart) {
 	return (0);
 }
 
-static int		action_start(action_t *action) {
-	return (action_start_log(action, 0));
-}
-
 static int		action_restart(action_t *action) {
-	return (action_stop_log(action, 1)
-		|| action_start_log(action, 1)
-		? -1 : 0);
+	return (action_stop_log(action, 1));
 }	
 
 static int		action_status(action_t *action) {

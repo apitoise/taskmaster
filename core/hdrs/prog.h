@@ -45,6 +45,7 @@ typedef struct		proc_s {
 	state_t			state;
 	uint64_t		retry;
 	uint8_t			bad_code;
+	uint8_t			restart;
 }					proc_t;
 
 typedef struct		prog_s {
