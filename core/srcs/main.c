@@ -36,6 +36,7 @@ static void	create_file(void) {
 		exit(3);
 	}
 	fprintf(lfile, "%d", getpid());
+	fclose(lfile);
 }
 
 static void	sighandler(int sig) {
