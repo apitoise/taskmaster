@@ -79,7 +79,10 @@ int			main(int ac, char **av) {
 					clean_exit("Can't access terminal", 7);
 					break ;
 				case SIGHUP:
-					action_call(&act_reload);
+					if (action_call(&act_reload)) {
+						log_error(NULL, 0, "SIGHUP: reload failed");
+						fprintf(stderr, "\nError: SIGHUP: reload failed");
+					}
 					glob.sig = 0;
 					printf("\n");
 				__attribute__((fallthrough));
@@ -93,7 +96,7 @@ int			main(int ac, char **av) {
 		if (action_call(&action)) {
 			snprintf(error, STD_MAX, "%s: Command failed", *action.cmds);
 			log_error(NULL, 0, error);
-			fprintf(stderr, "%s command failed\n", *action.cmds);
+			fprintf(stderr, "Error: %s command failed\n", *action.cmds);
 		}
 	}
 	clean_exit(NULL, -1);

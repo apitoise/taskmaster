@@ -65,10 +65,10 @@ void		monitor_fn(void) {
 					kill(proc->pid, prog->stopsignal);
 					proc->state = S_STOP_WAIT;
 					log_state(prog, j);
-					prog->timestamp = current;
+					proc->timestamp = current;
 					__attribute__ ((fallthrough));
 				case S_STOP_WAIT: 
-					if (prog->timestamp + prog->stoptime < (uint64_t)current)
+					if (proc->timestamp + prog->stoptime < (uint64_t)current)
 						kill(proc->pid, SIGKILL);
 					waitpid(proc->pid, &proc->status, WNOHANG);
 					if (access(proc->path, F_OK)) {
@@ -101,13 +101,13 @@ void		monitor_fn(void) {
 							clean_exit_child();
 					} else {
 						sprintf(proc->path, "/proc/%d/status", proc->pid);
-						prog->timestamp = current;
+						proc->timestamp = current;
 						proc->state = S_START_WAIT;
 						log_state(prog, j);
 					}
 					__attribute__ ((fallthrough));
 				case S_START_WAIT:
-					if (prog->timestamp + prog->starttime > (uint64_t)current) {
+					if (proc->timestamp + prog->starttime > (uint64_t)current) {
 						if (waitpid(proc->pid, &proc->status, WNOHANG) == -1
 							|| access(proc->path, F_OK)) {
 							proc->state = S_RETRY;

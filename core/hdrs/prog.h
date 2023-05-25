@@ -45,6 +45,7 @@ typedef struct		proc_s {
 	uint64_t		retry;
 	uint8_t			bad_code;
 	uint8_t			restart;
+	time_t			timestamp;
 }					proc_t;
 
 typedef struct		prog_s {
@@ -64,7 +65,6 @@ typedef struct		prog_s {
 	char			*workingdir;
 	mode_t			umask;
 	vec_t			*procs;
-	time_t			timestamp;
 	uint64_t		retries;
 }					prog_t;
 
