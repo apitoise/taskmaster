@@ -90,12 +90,12 @@ void		monitor_fn(void) {
 						break;
 					} else if (!proc->pid) {
 						umask(prog->umask);
-						if (io_redirect(STDOUT_FILENO,
+						if ((*prog->workingdir && chdir(prog->workingdir))
+							|| io_redirect(STDOUT_FILENO,
 								prog->std_out)
 							|| io_redirect(STDERR_FILENO,
 								prog->std_err)
 							|| str_split(prog->cmd, args, STD_MAX)
-							|| (*prog->workingdir && chdir(prog->workingdir))
 							|| execvpe(prog->cmd, args,
 								(char **)prog->env->data))
 							clean_exit_child();

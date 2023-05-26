@@ -136,12 +136,12 @@ static int	int_cmp(void *n1, void *n2) {
 	return (n1 != n2);
 }
 
-static int	vec_cmp(vec_t *v1, vec_t *v2, cmp_fn_t cmp_fn) {
+static int	vec_cmp(vec_t *v1, vec_t *v2, uint64_t n, cmp_fn_t cmp_fn) {
 	uint64_t	i;
 
 	if (v1->sz != v2->sz)
 		return (1);
-	for (i = 0; i + 1 < v1->sz; ++i)
+	for (i = 0; i < n; ++i)
 		if (cmp_fn(v1->data[i], v2->data[i]))
 			return (1);
 	return (0);
@@ -152,14 +152,14 @@ int			prog_cmp(prog_t *p1, prog_t *p2) {
 		|| p1->numprocs != p2->numprocs
 		|| p1->autostart != p2->autostart
 		|| p1->autorestart != p2->autorestart
-		|| vec_cmp(p1->exitcodes, p2->exitcodes, int_cmp)
+		|| vec_cmp(p1->exitcodes, p2->exitcodes, p1->exitcodes->sz, int_cmp)
 		|| p1->starttime != p2->starttime
 		|| p1->startretries != p2->startretries
 		|| p1->stopsignal != p2->stopsignal
 		|| p1->stoptime != p2->stoptime
 		|| strcmp(p1->std_out, p2->std_out)
 		|| strcmp(p1->std_err, p2->std_err)
-		|| vec_cmp(p1->env, p2->env, (cmp_fn_t)strcmp)
+		|| vec_cmp(p1->env, p2->env, (p1->exitcodes->sz - 1), (cmp_fn_t)strcmp)
 		|| strcmp(p1->workingdir, p2->workingdir)
 		|| p1->umask != p2->umask));
 }

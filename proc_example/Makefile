@@ -1,5 +1,5 @@
-NAME	=	int_ign
-SRCS	=	int_ign.c
+NAME	=	sig_test
+SRCS	=	sig_test.c
 OBJS	=	$(SRCS:.c=.o)
 CC	=	gcc
 CFLAGS	=	-Wall -Wextra -Werror
