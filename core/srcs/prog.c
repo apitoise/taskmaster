@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/21 18:00:57 by fcadet            #+#    #+#             */
-/*   Updated: 2023/05/05 12:32:04 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/05/26 16:30:35 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,31 +32,49 @@ static uint64_t		map_str(uint64_t *out, char **in, char *str, uint64_t sz) {
 
 prog_t			*prog_new(char *name, dict_t *opts) {
 	char 		*str;
+	uint64_t	opt_nb = 0;
 	vec_t		*ex_cds, *env;
 	prog_t		*new;
+	unw_targ_t	targs[] = {
+		{ "cmd", name, DT_STR },
+		{ "numprocs", (void *)1, DT_UNB },
+		{ "autostart", "false", DT_STR },
+		{ "autorestart", "unexpected", DT_STR },
+		{ "exitcodes", NULL, DT_VEC },
+		{ "starttime", (void *)0, DT_UNB },
+		{ "startretries", (void *)0, DT_UNB },
+		{ "stopsignal", "INT", DT_STR },
+		{ "stoptime", (void *)5, DT_UNB },
+		{ "stdout", "./log_out", DT_STR },
+		{ "stderr", "./log_err", DT_STR },
+		{ "env", NULL, DT_VEC },
+		{ "workingdir", "", DT_STR },
+		{ "umask", (void *)0002, DT_UNB },
+	};
 
 	if (!(new = malloc(sizeof(prog_t))))
 		return (NULL);
 	bzero(new, sizeof(prog_t));
 	new->name = name;
-	if (dic_get_unw(opts, "cmd", (void **)&new->cmd, name, DT_STR)
-		|| dic_get_unw(opts, "numprocs", (void **)&new->numprocs, (void *)1, DT_UNB)
+	if (dic_get_unw(opts, (void **)&new->cmd, &targs[UO_CMD], &opt_nb)
+		|| dic_get_unw(opts, (void **)&new->numprocs, &targs[UO_NUMPROCS], &opt_nb)
 		|| !new->numprocs
-		|| dic_get_unw(opts, "autostart", (void **)&str, "false", DT_STR)
+		|| dic_get_unw(opts, (void **)&str, &targs[UO_AUTOSTART], &opt_nb)
 		|| (new->autostart = map_str(NULL, g_map.bools, str, 2)) == U_ERROR
-		|| dic_get_unw(opts, "autorestart", (void **)&str, "unexpected", DT_STR)
+		|| dic_get_unw(opts, (void **)&str, &targs[UO_AUTORESTART], &opt_nb)
 		|| (new->autorestart = map_str(NULL, g_map.auto_r, str, 3)) == U_ERROR
-		|| dic_get_unw(opts, "exitcodes", (void **)&ex_cds, NULL, DT_VEC)
-		|| dic_get_unw(opts, "starttime", (void **)&new->starttime, (void *)0, DT_UNB)
-		|| dic_get_unw(opts, "startretries", (void **)&new->startretries, NULL, DT_UNB)
-		|| dic_get_unw(opts, "stopsignal", (void **)&str, "INT", DT_STR)
+		|| dic_get_unw(opts, (void **)&ex_cds, &targs[UO_EXITCODES], &opt_nb)
+		|| dic_get_unw(opts, (void **)&new->starttime, &targs[UO_STARTTIME], &opt_nb)
+		|| dic_get_unw(opts, (void **)&new->startretries, &targs[UO_STARTRETRIES], &opt_nb)
+		|| dic_get_unw(opts, (void **)&str, &targs[UO_STOPSIGNAL], &opt_nb)
 		|| (new->stopsignal = map_str(g_map.sigs_v, g_map.sigs_s, str, 8)) == U_ERROR
-		|| dic_get_unw(opts, "stoptime", (void **)&new->stoptime, (void *)10, DT_UNB)
-		|| dic_get_unw(opts, "stdout", (void **)&new->std_out, "./log_out", DT_STR)
-		|| dic_get_unw(opts, "stderr", (void **)&new->std_err, "./log_err", DT_STR)
-		|| dic_get_unw(opts, "env", (void **)&env, NULL, DT_VEC)
-		|| dic_get_unw(opts, "workingdir", (void **)&new->workingdir, "", DT_STR)
-		|| dic_get_unw(opts, "umask", (void **)&new->umask, (void *)0002, DT_UNB)
+		|| dic_get_unw(opts, (void **)&new->stoptime, &targs[UO_STOPTIME], &opt_nb)
+		|| dic_get_unw(opts, (void **)&new->std_out, &targs[UO_STDOUT], &opt_nb)
+		|| dic_get_unw(opts, (void **)&new->std_err, &targs[UO_STDERR], &opt_nb)
+		|| dic_get_unw(opts, (void **)&env, &targs[UO_ENV], &opt_nb)
+		|| dic_get_unw(opts, (void **)&new->workingdir, &targs[UO_WORKINGDIR], &opt_nb)
+		|| dic_get_unw(opts, (void **)&new->umask, &targs[UO_UMASK], &opt_nb)
+		|| opt_nb != opts->values->sz
 		|| !(new->exitcodes = vec_unw(ex_cds, DT_UNB))
 		|| !(new->env = vec_unw(env, DT_STR))
 		|| !(new->procs = vec_new(new->numprocs))
