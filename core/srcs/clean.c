@@ -6,7 +6,7 @@
 /*   By: fcadet <fcadet@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/04/24 10:03:51 by fcadet            #+#    #+#             */
-/*   Updated: 2023/05/24 10:41:50 by fcadet           ###   ########.fr       */
+/*   Updated: 2023/07/12 15:57:55 by fcadet           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,8 +25,6 @@ void	clean_exit_child(void) {
 	fclose(stdout);
 	fclose(stdin);
 	fclose(stderr);
-	if (glob.prog_dic)
-		prog_dic_kill(glob.prog_dic);
 	if (glob.log_file)
 		fclose(glob.log_file);
 	clean_glob();
